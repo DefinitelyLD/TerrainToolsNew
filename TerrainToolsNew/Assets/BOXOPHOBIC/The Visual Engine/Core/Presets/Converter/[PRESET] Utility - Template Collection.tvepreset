@@ -1,0 +1,175 @@
+*******************************************************************
+*                             INFO                                *
+*******************************************************************
+ 
+InfoTitle Template Collection
+InfoPreset Use this preset to convert XXX assets.
+InfoStatus ● ● ● ● ●
+InfoOnline https://assetstore.unity.com/publishers/XXX
+
+*******************************************************************
+*                             PRESET                              *
+*******************************************************************
+
+OutputOptions Props/Grass/Flowers/Bushes/Trees 4
+OutputTransforms USE_ORIGINAL_TRANSFORMS
+
+*******************************************************************
+
+if ANY_PREFAB_ATTRIBUTE_CONTAINS XXX
+{
+	OutputValid FALSE
+	InfoError Due to the shader complexity, the XXX settings cannot be transfered to the Visual Engine shaders!
+}
+
+if OUTPUT_OPTION_CONTAINS Props
+{
+	Include Default Prop Masks
+}
+
+if OUTPUT_OPTION_CONTAINS Grass
+{
+	Include Default Grass Masks
+}
+
+if OUTPUT_OPTION_CONTAINS Flowers
+{
+	Include Default Grass Masks
+}
+
+if OUTPUT_OPTION_CONTAINS Bushes
+{
+	Mesh SetRed GET_MASK_PROCEDURAL 3
+	Mesh SetGreen GET_MASK_PROCEDURAL 5
+	Mesh SetBlue GET_MASK_3RD_PARTY 3
+	Mesh SetAlpha GET_MASK_PROCEDURAL 4
+	Mesh SetExtraCoord NONE
+
+	Mesh SetPivots NONE
+}
+
+if OUTPUT_OPTION_CONTAINS Trees
+{
+	Mesh SetRed GET_MASK_PROCEDURAL 3
+	Mesh SetGreen GET_MASK_PROCEDURAL 6
+	Mesh SetBlue GET_MASK_3RD_PARTY 3
+	Mesh SetAlpha GET_MASK_PROCEDURAL 4
+	Mesh SetExtraCoord GET_COORD_3RD_PARTY 0
+
+	Mesh SetPivots NONE
+}
+
+*******************************************************************
+
+Include Unity Lit Commons
+Include Unity Lit Detail
+Include Shader Graph Commons
+
+*******************************************************************
+
+Include Default Leaf Settings
+
+Material COPY_TEX XXX _MainAlbedoTex
+Material COPY_TEX XXX _MainNormalTex
+Material COPY_TEX XXX _MainShaderTex
+
+Material SET_VECTOR _MainCoordValue 1 1 0 0
+Material COPY_VECTOR XXX _MainCoordValue
+
+Material COPY_FLOAT XXX _MainAlphaClipValue
+Material COPY_COLOR XXX _MainColor
+Material COPY_FLOAT XXX _MainNormalValue
+Material COPY_FLOAT XXX _MainMetallicValue
+Material COPY_FLOAT XXX _MainOcclusionValue
+Material COPY_FLOAT XXX _MainSmoothnessValue
+
+Texture PropName _MainShaderTex
+Texture SetRed GET_RED XXX
+Texture SetGreen GET_GREEN XXX
+Texture SetBlue GET_RED XXX
+Texture SetAlpha GET_ALPHA XXX
+Utility START_TEXTURE_PACKING
+
+*******************************************************************
+
+if SHADER_NAME_CONTAINS XXX
+{
+	Include Default Bark Settings
+
+	Material COPY_TEX XXX _MainAlbedoTex
+	Material COPY_TEX XXX _MainNormalTex
+	Material COPY_TEX XXX _MainShaderTex
+
+	Material SET_VECTOR _MainCoordValue 1 1 0 0
+	Material COPY_VECTOR XXX _MainCoordValue
+
+	Material COPY_FLOAT XXX _MainAlphaClipValue
+	Material COPY_COLOR XXX _MainColor
+	Material COPY_FLOAT XXX _MainNormalValue
+	Material COPY_FLOAT XXX _MainMetallicValue
+	Material COPY_FLOAT XXX _MainOcclusionValue
+	Material COPY_FLOAT XXX _MainSmoothnessValue
+
+	Texture PropName _MainShaderTex
+	Texture SetRed GET_RED XXX
+	Texture SetGreen GET_GREEN XXX
+	Texture SetBlue GET_RED XXX
+	Texture SetAlpha GET_ALPHA XXX
+	Utility START_TEXTURE_PACKING
+	
+	if MATERIAL_FLOAT_EQUALS XXXLAYER 1
+	{
+		Material SET_FLOAT _SecondIntensityValue 1
+
+		Material SET_FLOAT _SecondSampleMode 0
+		Material SET_VECTOR _SecondCoordValue 1 1 0 0
+		Material COPY_VECTOR XXX _SecondCoordValue
+
+		Material SET_FLOAT _SecondMaskValue 1
+		Material SET_FLOAT _SecondMeshValue 1
+		Material SET_FLOAT _SecondProjValue 0
+
+		Material SET_VECTOR _SecondMaskRemap 0 1 0 0
+		Material SET_VECTOR _SecondVertRemap 0 1 0 0
+		Material SET_VECTOR _SecondProjRemap 0 1 0 0
+		Material SET_VECTOR _SecondBlendRemap 0 1 0 0
+
+		if MATERIAL_FLOAT_EQUALS XXXPLANAR 1
+		{
+			Material SET_FLOAT _SecondSampleMode 2
+			Material SET_VECTOR _SecondCoordValue 1 1 0 0
+			Material COPY_VECTOR XXX _SecondCoordValue
+
+			Material SET_FLOAT _SecondMaskValue 1
+			Material SET_FLOAT _SecondMeshValue 0
+			Material SET_FLOAT _SecondProjValue 1
+
+			Material SET_VECTOR _SecondMaskRemap 0 1 0 0
+			Material SET_VECTOR _SecondMeshRemap 0 1 0 0
+			Material SET_VECTOR _SecondProjRemap 0 1 0 0
+			Material SET_VECTOR _SecondBlendRemap 0 1 0 0
+		}
+
+		Material COPY_TEX XXX _SecondAlbedoTex
+		Material COPY_TEX XXX _SecondNormalTex
+		Material COPY_TEX XXX _SecondShaderTex
+
+		Material SET_TEX Internal__NoiseTex
+		Material COPY_TEX XXX _SecondMaskTex
+
+		//Include Copy Layer To Layer Mask
+
+		Material COPY_VECTOR XXX _SecondColor
+		Material COPY_FLOAT XXX _SecondNormalValue
+		Material COPY_FLOAT XXX _SecondMetallicValue
+		Material COPY_FLOAT XXX _SecondOcclusionValue
+		Material COPY_FLOAT XXX _SecondSmoothnessValue
+
+		Texture PropName _SecondShaderTex
+		Texture SetRed GET_RED XXX
+		Texture SetGreen GET_GREEN XXX
+		Texture SetBlue GET_RED XXX
+		Texture SetAlpha GET_ALPHA XXX
+		Utility START_TEXTURE_PACKING
+	}
+}

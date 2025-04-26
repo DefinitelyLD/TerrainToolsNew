@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: db5b16e44ef0c7143bf08d18cff3a81f
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 181731
+  packageName: The Visual Engine | Terrain Elements Module
+  packageVersion: 20.7.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine Modules/Terrain Elements/Core/Shaders/Elements/Atmo
+    Overlay.shader
+  uploadId: 749724

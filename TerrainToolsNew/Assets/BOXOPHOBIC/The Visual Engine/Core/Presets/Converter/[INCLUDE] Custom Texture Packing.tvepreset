@@ -1,0 +1,153 @@
+
+*******************************************************************
+*                             INCLUDE                             *
+*******************************************************************
+
+if SHADER_NAME_CONTAINS Custom Texture Packing
+{
+	Include Default Leaf Settings
+
+	if MATERIAL_FLOAT_EQUALS _RenderClip 0
+	{
+		Include Default Bark Settings
+	}
+
+	//Material COPY_PROPS
+
+
+
+	if MATERIAL_FLOAT_EQUALS _MainAlphaSourceMode 1
+	{
+		// Pack custom Albedo Texture
+		Texture PropName _MainAlbedoTex
+		Texture ImportType DEFAULT
+		Texture SetRed GET_RED _MainAlbedoTex
+		Texture SetGreen GET_GREEN _MainAlbedoTex
+		Texture SetBlue GET_BLUE _MainAlbedoTex
+		Texture SetAlpha GET_ALPHA _MainAlbedoTex
+	
+		if MATERIAL_FLOAT_EQUALS _MainAlphaChannelMode 0
+		{
+			Texture SetAlpha GET_RED _MainAlphaTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainAlphaChannelMode 1
+		{
+			Texture SetAlpha GET_GREEN _MainAlphaTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainAlphaChannelMode 2
+		{
+			Texture SetAlpha GET_BLUE _MainAlphaTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainAlphaChannelMode 3
+		{
+			Texture SetAlpha GET_ALPHA _MainAlphaTex
+		}
+		
+			Utility START_TEXTURE_PACKING
+	}
+
+	// Pack custom Shader texture
+	Texture PropName _MainShaderTex
+	Texture ImportType DEFAULT
+	Texture SetRed GET_RED _MainShaderTex
+	Texture SetGreen GET_GREEN _MainShaderTex
+	Texture SetBlue GET_BLUE _MainShaderTex
+	Texture SetAlpha GET_ALPHA _MainShaderTex
+
+	if MATERIAL_FLOAT_EQUALS _MainMetallicSourceMode 1
+	{
+		if MATERIAL_FLOAT_EQUALS _MainMetallicChannelMode 0
+		{
+			Texture SetRed GET_RED _MainMetallicTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainMetallicChannelMode 1
+		{
+			Texture SetRed GET_GREEN _MainMetallicTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainMetallicChannelMode 2
+		{
+			Texture SetRed GET_BLUE _MainMetallicTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainMetallicChannelMode 3
+		{
+			Texture SetRed GET_ALPHA _MainMetallicTex
+		}
+	}
+
+	if MATERIAL_FLOAT_EQUALS _MainOcclusionSourceMode 1
+	{
+		if MATERIAL_FLOAT_EQUALS _MainOcclusionChannelMode 0
+		{
+			Texture SetGreen GET_RED _MainOcclusionTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainOcclusionChannelMode 1
+		{
+			Texture SetGreen GET_GREEN _MainOcclusionTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainOcclusionChannelMode 2
+		{
+			Texture SetGreen GET_BLUE _MainOcclusionTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainOcclusionChannelMode 3
+		{
+			Texture SetGreen GET_ALPHA _MainOcclusionTex
+		}
+	}
+
+	if MATERIAL_FLOAT_EQUALS _MainMultiSourceMode 1
+	{
+		if MATERIAL_FLOAT_EQUALS _MainMultiChannelMode 0
+		{
+			Texture SetBlue GET_RED _MainMultiTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainMultiChannelMode 1
+		{
+			Texture SetBlue GET_GREEN _MainMultiTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainMultiChannelMode 2
+		{
+			Texture SetBlue GET_BLUE _MainMultiTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainMultiChannelMode 3
+		{
+			Texture SetBlue GET_ALPHA _MainMultiTex
+		}
+	}
+
+	if MATERIAL_FLOAT_EQUALS _MainSmoothnessSourceMode 1
+	{
+		if MATERIAL_FLOAT_EQUALS _MainSmoothnessChannelMode 0
+		{
+			Texture SetAlpha GET_RED _MainSmoothnessTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainSmoothnessChannelMode 1
+		{
+			Texture SetAlpha GET_GREEN _MainSmoothnessTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainSmoothnessChannelMode 2
+		{
+			Texture SetAlpha GET_BLUE _MainSmoothnessTex
+		}
+		
+		if MATERIAL_FLOAT_EQUALS _MainSmoothnessChannelMode 3
+		{
+			Texture SetAlpha GET_ALPHA _MainSmoothnessTex
+		}
+	}
+
+	Utility START_TEXTURE_PACKING
+}
