@@ -1,0 +1,19 @@
+#pragma kernel RaiseBrush
+//#pragma kernel LowerBrush
+//#pragma kernel SmoothBrush
+//#pragma kernel FlatBrush
+//#pragma kernel EraseBrush
+
+//#pragma kernel StripsBrush
+//#pragma kernel RingsBrush
+//#pragma kernel CurveyStripsBrush
+//#pragma kernel SpiralBrush
+//#pragma kernel DoubleSpiralBrush
+
+//#pragma kernel PaintBrush
+
+[numthreads(8,8,1)]
+void RaiseBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
