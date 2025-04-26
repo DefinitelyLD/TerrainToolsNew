@@ -1,0 +1,15 @@
+*******************************************************************
+*                            OVERRIDE                             *
+*******************************************************************
+
+InfoStatus The shaders will be changed to Custom Lit shaders if the shaders are found! The action will override the shader even if Keep Converted Materials is used!
+
+Utility USE_MATERIAL_POST_PROCESSING
+
+Shader SHADER_PROP BOXOPHOBIC/The Visual Engine/Geometry/General Standard Lit (Custom)
+Shader SHADER_BARK BOXOPHOBIC/The Visual Engine/Geometry/General Standard Lit (Custom)
+Shader SHADER_LEAF BOXOPHOBIC/The Visual Engine/Geometry/General Subsurface Lit (Custom)
+Shader SHADER_PLANT BOXOPHOBIC/The Visual Engine/Geometry/General Subsurface Lit (Custom)
+Shader SHADER_CROSS BOXOPHOBIC/The Visual Engine/Geometry/General Subsurface Lit (Custom)
+Shader SHADER_GRASS BOXOPHOBIC/The Visual Engine/Geometry/General Subsurface Lit (Custom)
+

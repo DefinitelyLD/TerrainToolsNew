@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: d26ec9a85df05474d875e196dc0e9687
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 181731
+  packageName: The Visual Engine | Terrain Elements Module
+  packageVersion: 20.7.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine Modules/Terrain Elements/Core/Shaders/Elements/Atmo
+    Dryness.shader
+  uploadId: 749724
