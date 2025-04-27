@@ -1,12 +1,11 @@
-using PlasticPipe.PlasticProtocol.Messages;
 using System;
 using System.Data;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
@@ -47,6 +46,9 @@ namespace TerrainTools {
 
         private const int THREAD_GROUP_SIZE = 32;
 
+        private GraphicsFence m_fence;
+        private bool m_submitted = false;
+
         public void Mutate(TerrainToolsManagerMutateData data) {
 
             m_brushAngle = data.brushAngle;
@@ -77,6 +79,7 @@ namespace TerrainTools {
 
             var realPointerPosition = m_inputModule.GetMousePosition();
             m_pointerPosition = Vector2.Lerp(m_pointerPosition, realPointerPosition, m_brushFallback);
+            m_pointerPosition = realPointerPosition;
 
             var ray = camera.ScreenPointToRay(m_pointerPosition);
             if (Physics.Raycast(ray, out RaycastHit hit) == false)
@@ -91,23 +94,27 @@ namespace TerrainTools {
             if (hit.transform.gameObject != terrain.gameObject)
                 return;
 
-            var pointerTerrainPos = hit.point - terrain.transform.position;
-            var brushPosition = new Vector2Int(
-                (int)((heightmapResolution / terrainSize.x) * pointerTerrainPos.x),
-                (int)((heightmapResolution / terrainSize.z) * pointerTerrainPos.z));
+            if (m_submitted) {
+                m_submitted = !m_fence.passed;
+            }
 
-            brushPosition -= new Vector2Int(m_brushSize.x / 2, m_brushSize.y / 2);
+            var hitPoint = new Vector3(hit.point.x, terrain.transform.position.y, hit.point.z);
+            var pointerTerrainPos = hitPoint - terrain.transform.position;
 
             var actualBrushSize = new Vector2Int(
-                (int)Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)),
-                (int)Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)));
+                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1.4f),
+                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1.4f));
 
+            var brushPosition = new Vector2Int(
+                (int)(((heightmapResolution / terrainSize.x) * pointerTerrainPos.x) - (actualBrushSize.x * 0.5f)),
+                (int)(((heightmapResolution / terrainSize.z) * pointerTerrainPos.z) - (actualBrushSize.y * 0.5f)));
 
             var newBrushData = new BrushData();
             newBrushData.brushPosition = brushPosition;
             newBrushData.brushSize = m_brushSize;
             newBrushData.angle = m_brushAngle;
             newBrushData.actualBrushSize = actualBrushSize;
+
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
             newBrushData.smoothness = m_brushSmoothess;
             newBrushData.brushStrength = m_brushStrength;
@@ -128,9 +135,15 @@ namespace TerrainTools {
             var brushMaskTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
 
             if (brushMaskTexture.CheckSize(m_brushSize) == false) {
-                m_context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+                if (m_submitted) {
+                    if (m_fence.passed == false) {
+                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
+                        return;
+                    }
+                }
 
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, m_brushSize, GraphicsFormat.R32_SFloat, false);
+                m_context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+                brushMaskTexture = m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, m_brushSize, GraphicsFormat.R32_SFloat, false);
             }
             //--
 
@@ -142,8 +155,15 @@ namespace TerrainTools {
             var heightmapTexture = m_context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
             if(heightmapTexture.CheckSize(heightmapSize) == false) {
+                if (m_submitted) {
+                    if (m_fence.passed == false) {
+                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
+                        return;
+                    }
+                }
+
                 m_context.DestroyRenderTexture(ContextConstants.TerrainHeightmapTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, heightmapFormat, false);
+                heightmapTexture = m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, heightmapFormat, false);
             }
             //--
 
@@ -155,8 +175,15 @@ namespace TerrainTools {
             var brushHeightmap = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
 
             if(brushHeightmap.CheckSize(actualBrushSize) == false) {
+                if (m_submitted) {
+                    if (m_fence.passed == false) {
+                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
+                        return;
+                    }
+                }
+
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, heightmapFormat, false);
+                brushHeightmap = m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, heightmapFormat, false);
             }
             //--
 
@@ -165,17 +192,24 @@ namespace TerrainTools {
                 var texture = m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
 
                 // resizing mask texture
-                commandBuffer.Blit(m_resources.TerrainMask, texture);
+                commandBuffer.Blit(m_resources.TerrainMask, texture, m_resources.BlitMaterial);
             }
 
             var maskTexture = m_context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
             if (maskTexture.CheckSize(heightmapSize) == false) {
+                if (m_submitted) {
+                    if (m_fence.passed == false) {
+                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
+                        return;
+                    }
+                }
+
                 m_context.DestroyRenderTexture(ContextConstants.TerrainMaskTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
+                maskTexture = m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
 
                 // resizing mask texture
-                commandBuffer.Blit(m_resources.TerrainMask, maskTexture);
+                 commandBuffer.Blit(m_resources.TerrainMask, maskTexture, m_resources.BlitMaterial);
             }
             //--
 
@@ -187,26 +221,60 @@ namespace TerrainTools {
             var heightmapResultTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
 
             if (heightmapResultTexture.CheckSize(actualBrushSize) == false) {
+                if (m_submitted) {
+                    if (m_fence.passed == false) {
+                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
+                        return;
+                    }
+                }
+
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, heightmapFormat, true);
+                heightmapResultTexture = m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, heightmapFormat, true);
             }
             //--
+
+            if(terrain.heightmapPixelError != 0) {
+                terrain.heightmapPixelError = 0;
+            }
+            if(terrain.drawInstanced != true) {
+                Debug.Assert(false, "Terrain Draw Insranced is not checked in terrain settings. Terrain Draw Instanced must be checked in the editor, It can't be set at runtime.");
+            }
+
+            if (m_resources.DebugMode) {
+                if (GameObject.Find("[Terrain Tools Texture Debug]") == null) {
+                    var debug = new GameObject("[Terrain Tools Texture Debug]");
+                    debug.AddComponent<TerrainToolsTextureDebug>();
+                } else {
+                    var debug = GameObject.Find("[Terrain Tools Texture Debug]");
+                    var debugComponent = debug.GetComponent<TerrainToolsTextureDebug>();
+
+                    debugComponent.Clear();
+
+                    debugComponent.SetTexture("Brush Mask", brushMaskTexture);
+                    debugComponent.SetTexture("Heightmap", heightmapTexture);
+                    debugComponent.SetTexture("Brush Heightmap", brushHeightmap);
+                    debugComponent.SetTexture("Heightmap Result", heightmapResultTexture);
+                    debugComponent.SetTexture("Mask", maskTexture);
+                    debugComponent.SetTexture("Terrain Heightmap", terrain.terrainData.heightmapTexture);
+                }
+            }
 
             // slicing brush size and position to be inbounds of the heightmap.
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushPosition, heightmapSize);
             var slicedBrushSize = slicingOps.SliceBrushSize(brushPosition, heightmapSize, actualBrushSize);
             var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushPosition, heightmapSize);
+            slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
             var computeShader = m_context.GetCompute();
             var dispatchSize = m_context.GetDispatchSize();
 
             // resizing brush mask
             var brushTexture = m_context.GetCurrentBrushShape();
-            commandBuffer.Blit(brushTexture, brushMaskTexture);
+            commandBuffer.Blit(brushTexture, brushMaskTexture, m_resources.BlitMaterial);
 
             // getting heightmap
-            commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture);
+            commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture, m_resources.BlitMaterial);
 
             // getting brush heightmap
             commandBuffer.CopyTexture(
@@ -232,7 +300,7 @@ namespace TerrainTools {
                     terrain.terrainData.heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
 
                 // renewing the heightmap texture copy
-                commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture);
+                commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture, m_resources.BlitMaterial);
 
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "HeightmapTexture", heightmapTexture);
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "OutputHeightmapTexture", terrain.terrainData.heightmapTexture);
@@ -241,10 +309,13 @@ namespace TerrainTools {
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.MaskHeightmap, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             }
 
+            m_fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
+
             // sumbitting for execution
             HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
             HDRPTerrainToolsInjectionPass.SubmitPass = true;
 
+            m_submitted = true;
         }
 
         public TerrainToolsManager(Terrain terrain, TerrainToolsResources resources) {
@@ -293,6 +364,13 @@ namespace TerrainTools {
             }
 
             m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE);
+            TerrainToolsUtils.LoggingEnabled = m_resources.DebugMode;
+
+            if (terrain.heightmapPixelError != 0) {
+                terrain.heightmapPixelError = 0;
+            }
+
+            TerrainToolsUtils.Log("Pixel error set to 0 for the terrain.");
         }
     }
 }

@@ -269,8 +269,8 @@ namespace TerrainTools {
 
         public Vector3Int GetDispatchSize() {
             return new Vector3Int(
-                Math.Max(m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE, 1),
-                Math.Max(m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE, 1),
+                m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE + 1,
+                m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE + 1,
                 1
             );
         }

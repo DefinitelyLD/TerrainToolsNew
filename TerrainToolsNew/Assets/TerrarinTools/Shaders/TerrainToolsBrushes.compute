@@ -37,6 +37,33 @@ float BrushAngle;
 
 float DeltaTime;
 
+bool IsPointInRotatedBox(float2 boxPosition, int2 boxSize, float boxAngle, int2 target)
+{
+    // Convert angle to radians
+    float angleRad = radians(boxAngle);
+    float cosAngle = cos(angleRad);
+    float sinAngle = sin(angleRad);
+
+    // Calculate half sizes of the box
+    float halfWidth = boxSize.x / 2.0f;
+    float halfHeight = boxSize.y / 2.0f;
+
+    // Step 1: Translate the point into the box's local space by subtracting the box position
+    int2 translatedPoint = target - boxPosition;
+
+    // Step 2: Rotate the point by the inverse of the box's angle
+    float rotatedX = translatedPoint.x * cosAngle + translatedPoint.y * sinAngle;
+    float rotatedY = -translatedPoint.x * sinAngle + translatedPoint.y * cosAngle;
+
+    // Step 3: Check if the rotated point is within the box's unrotated bounds
+    bool isInside = (rotatedX >= -halfWidth && rotatedX <= halfWidth) &&
+                    (rotatedY >= -halfHeight && rotatedY <= halfHeight);
+
+    return isInside;
+}
+
+
+
 [numthreads(32, 32,1)]
 void RaiseBrush(uint3 id : SV_DispatchThreadID)
 {
@@ -45,9 +72,16 @@ void RaiseBrush(uint3 id : SV_DispatchThreadID)
         return;
     }
     
-    float currentHeight = BrushHeightmapTexture[id.xy];
-    currentHeight += BrushStrength * DeltaTime;
+    if (IsPointInRotatedBox(ActualBrushSize / 2.0, BrushSize, BrushAngle, id.xy) == false)
+    {
+        //OutputBrushHeightmapTexture[id.xy] = 0;
+        
+        return;
+    }
     
+    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    
+    currentHeight += BrushStrength * DeltaTime;
     currentHeight = clamp(currentHeight, 0, 0.5);
     
     OutputBrushHeightmapTexture[id.xy] = currentHeight;

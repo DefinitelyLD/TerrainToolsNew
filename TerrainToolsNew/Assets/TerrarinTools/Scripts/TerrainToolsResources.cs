@@ -13,5 +13,11 @@ namespace TerrainTools {
         [Header("Other:")]
         [Tooltip("The compute shader containg all the brushes kernels.")]
         public ComputeShader TerrainBrushesCompute;
+        [Tooltip("The material which will be used to blit textures.")]
+        public Material BlitMaterial;
+
+        [Header("Debug Settings:")]
+        [Tooltip("Whether to turn on debug mode.")]
+        public bool DebugMode = false;
     }
 }
