@@ -1,6 +1,6 @@
-﻿using log4net.Util.TypeConverters;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -24,7 +24,9 @@ namespace TerrainTools {
         private readonly Dictionary<string, GraphicsTexture> m_graphicsTexture;
         private readonly Dictionary<string, Mesh> m_meshes;
 
-        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources) {
+        public readonly int THREAD_GROUP_SIZE;
+
+        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int tHREAD_GROUP_SIZE) {
             m_terrain = terrain;
 
             m_commandBuffer = new CommandBuffer();
@@ -34,6 +36,7 @@ namespace TerrainTools {
             m_renderTextures = new();
             m_graphicsTexture = new();
             m_meshes = new();
+            THREAD_GROUP_SIZE = tHREAD_GROUP_SIZE;
         }
 
         public void UpdateData(BrushData brushData) {
@@ -112,11 +115,24 @@ namespace TerrainTools {
             return texture;
         }
 
-        public RenderTexture CreateRenderTexture(string name, Vector2Int size, GraphicsFormat format) {
+        public RenderTexture CreateRenderTexture(string name, Vector2Int size, GraphicsFormat format, bool readWrite) {
             Debug.Assert(name != null && name != string.Empty);
             Debug.Assert(IsRenderTextureExists(name) == false, $"RenderTexture with name {name} already exists");
 
-            var renderTexture = new RenderTexture(size.x, size.y, 0, format, 0);
+
+            var desc = new RenderTextureDescriptor();
+            desc.volumeDepth = 1;
+            desc.useMipMap = false;
+            desc.bindMS = false;
+            desc.graphicsFormat = format;
+            desc.depthBufferBits = 0;
+            desc.dimension = TextureDimension.Tex2D;
+            desc.width = size.x;
+            desc.height = size.y;
+            desc.enableRandomWrite = readWrite;
+            desc.msaaSamples = 1;
+
+            var renderTexture = new RenderTexture(desc);
             m_renderTextures.Add(name, renderTexture);
 
             return renderTexture;

@@ -3,6 +3,10 @@
 namespace TerrainTools {
     [InputModuleAttribute(InputModuleType.Default)]
     public sealed class DefaultInputModule : InputModule {
+        public override Vector2 GetMousePosition() {
+            return Input.mousePosition;
+        }
+
         public override bool IsMouseLeftClickDown() {
             return Input.GetKeyDown(KeyCode.Mouse0);
         }

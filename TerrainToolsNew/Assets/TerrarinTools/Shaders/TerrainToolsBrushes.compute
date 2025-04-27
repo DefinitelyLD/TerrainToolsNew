@@ -1,19 +1,94 @@
 #pragma kernel RaiseBrush
-//#pragma kernel LowerBrush
-//#pragma kernel SmoothBrush
-//#pragma kernel FlatBrush
-//#pragma kernel EraseBrush
+#pragma kernel LowerBrush
+#pragma kernel SmoothBrush
+#pragma kernel FlatBrush
+#pragma kernel EraseBrush
 
-//#pragma kernel StripsBrush
-//#pragma kernel RingsBrush
-//#pragma kernel CurveyStripsBrush
-//#pragma kernel SpiralBrush
-//#pragma kernel DoubleSpiralBrush
+#pragma kernel StripsBrush
+#pragma kernel RingsBrush
+#pragma kernel CurveyStripsBrush
+#pragma kernel SpiralBrush
+#pragma kernel DoubleSpiralBrush
 
-//#pragma kernel PaintBrush
+#pragma kernel PaintBrush
 
-[numthreads(8,8,1)]
+#pragma kernel MaskHeightmap
+
+Texture2D<float> HeightmapTexture;
+Texture2D<float> BrushHeightmapTexture;
+Texture2D<float> BrushMaskTexture;
+
+RWTexture2D<float> OutputHeightmapTexture;
+RWTexture2D<float> OutputBrushHeightmapTexture;
+
+[numthreads(32, 32,1)]
 void RaiseBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void LowerBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void SmoothBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void FlatBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void EraseBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void StripsBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void RingsBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void CurveyStripsBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void SpiralBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void DoubleSpiralBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void PaintBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 {
     
 }

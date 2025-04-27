@@ -8,7 +8,7 @@ namespace TerrainTools {
         public Texture2D[] Brushes;
 
         [Tooltip("The Shape to mask the terrain with.")]
-        public Texture2D[] TerrainMask;
+        public Texture2D TerrainMask;
 
         [Header("Other:")]
         [Tooltip("The compute shader containg all the brushes kernels.")]

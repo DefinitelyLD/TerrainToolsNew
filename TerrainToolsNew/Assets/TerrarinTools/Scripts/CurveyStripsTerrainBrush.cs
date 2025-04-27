@@ -3,6 +3,9 @@
 namespace TerrainTools {
     [TerrainBrush]
     public sealed class CurveyStripsTerrainBrush : TerrainBrush {
+        public override BrushType GetBrushType() {
+            throw new NotImplementedException();
+        }
         public override void OnBrushDown(IBrushContext context) {
             throw new NotImplementedException();
         }

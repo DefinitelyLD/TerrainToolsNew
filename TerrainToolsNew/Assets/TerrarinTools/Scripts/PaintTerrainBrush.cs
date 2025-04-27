@@ -2,6 +2,10 @@
 
 namespace TerrainTools {
     public sealed class PaintTerrainBrush : TerrainBrush {
+        public override BrushType GetBrushType() {
+            throw new NotImplementedException();
+        }
+
         public override void OnBrushDown(IBrushContext context) {
             throw new NotImplementedException();
         }

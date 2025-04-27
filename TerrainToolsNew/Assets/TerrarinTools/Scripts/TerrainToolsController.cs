@@ -4,11 +4,30 @@ namespace TerrainTools {
 
     public sealed class TerrainToolsController : MonoBehaviour {
 
+        [Header("Controls:")]
+        [SerializeField]
+        private Vector2Int BrushSize = new Vector2Int(30, 30);
+        [SerializeField]
+        private float BrushStrength = 1f;
+        [SerializeField]
+        private float BrushSmoothness = 1f;
+        [SerializeField]
+        private float BrushAngle = 0;
+
+        [SerializeField]
+        private int BrushShapeIndex = 0;
+
+        [SerializeField]
+        private BrushMode BrushType = BrushMode.Raise;
+
+        [SerializeField]
+        private float BrushFall = 1;
+
+        [Header("References:")]
         [Tooltip("The terrain on which to work.")]
         [SerializeField]
         private Terrain Terrain;
 
-        [Header("References:")]
         [Tooltip("The resources to use for the brushes.")]
         [SerializeField]
         private TerrainToolsResources ToolsResources;
@@ -19,7 +38,27 @@ namespace TerrainTools {
             Debug.Assert(Terrain != null, $"Terrain are not assigned, {name}");
             Debug.Assert(ToolsResources != null, $"Resources are not assigned, {name}");
 
-            m_manager = new TerrainToolsManager(ToolsResources);
+            m_manager = new TerrainToolsManager(Terrain, ToolsResources);
+        }
+
+        private void Update() {
+            if(m_manager != null) {
+
+                m_manager.Mutate(new TerrainToolsManagerMutateData() {
+                    brushAngle = BrushAngle,
+                    brushSize = BrushSize,
+                    brushStrength = BrushStrength,
+                    brushSmoothness = BrushSmoothness,
+
+                    brushType = BrushType.GetName(),
+
+                    brushShapeIndex = BrushShapeIndex,
+
+                    brushFallback = BrushFall,
+                });
+
+                m_manager.Tick();
+            }
         }
 
         public void SetReferences(TerrainToolsControllerReferences references) {

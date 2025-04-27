@@ -3,6 +3,10 @@
 namespace TerrainTools {
     [TerrainBrush]
     public sealed class SmoothTerrainBrush : TerrainBrush {
+        public override BrushType GetBrushType() {
+            throw new NotImplementedException();
+        }
+
         public override void OnBrushDown(IBrushContext context) {
             throw new NotImplementedException();
         }

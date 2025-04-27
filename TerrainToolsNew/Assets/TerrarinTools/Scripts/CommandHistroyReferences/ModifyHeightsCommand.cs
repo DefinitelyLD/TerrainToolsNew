@@ -58,11 +58,15 @@ namespace Commands.AllCommands.TerrainCommands
 
         public void DestroyCommand()
         {
-            if(_endState != null)
+            if (_endState != null) {
                 _endState.Heightmap.Release();
+                _endState.Heightmap = null;
+            }
 
-            if(_startState != null)
+            if (_startState != null) {
                 _startState.Heightmap.Release();
+                _startState.Heightmap = null;
+            }
         }
     }
 }

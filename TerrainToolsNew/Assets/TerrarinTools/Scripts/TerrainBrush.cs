@@ -1,5 +1,8 @@
 ﻿namespace TerrainTools {
+
     public abstract class TerrainBrush {
+        public abstract BrushType GetBrushType();
+
 
         public virtual void Prepare(IBrushContext context) {
             // default implementation does nothing

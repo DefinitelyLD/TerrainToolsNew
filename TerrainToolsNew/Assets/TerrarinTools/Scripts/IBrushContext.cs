@@ -12,7 +12,7 @@ namespace TerrainTools {
         bool IsGraphicsTextureExists(string name);
 
         Texture2D CreateTexture2D(string name, Vector2Int size, GraphicsFormat format);
-        RenderTexture CreateRenderTexture(string name, Vector2Int size, GraphicsFormat format);
+        RenderTexture CreateRenderTexture(string name, Vector2Int size, GraphicsFormat format, bool readWrite);
         GraphicsTexture CreateGraphicsTexture(string name, Vector2Int size, GraphicsFormat format, bool readWrite);
 
         Texture2D GetTexture2D(string name);

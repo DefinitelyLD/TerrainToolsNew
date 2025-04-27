@@ -79,6 +79,7 @@ namespace Commands.AllCommands.TerrainCommands
                 for (var i = 0; i < _startState.Alphamaps.Length; i++)
                 {
                     _startState.Alphamaps[i].Release();
+                    _startState.Alphamaps[i] = null;
                 }
             }
             if (_endState != null)
@@ -86,6 +87,7 @@ namespace Commands.AllCommands.TerrainCommands
                 for (var i = 0; i < _endState.Alphamaps.Length; i++)
                 {
                     _endState.Alphamaps[i].Release();
+                    _endState.Alphamaps[i] = null;
                 }
             }
         }
