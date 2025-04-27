@@ -5,11 +5,9 @@ namespace TerrainTools {
     public struct SlicingOperations {
 
         public Vector2Int SliceBrushSize(Vector2Int currentPosition, Vector2Int bounds, Vector2Int currentSize) {
-            var slicedPositionNegatives = SliceBrushPosition(currentPosition, bounds);
-            var slicedPositionPositives = SliceBrushPosition(currentPosition + currentSize, bounds);
 
-            var slicePositionNegativesChange = currentPosition - slicedPositionNegatives;
-            var slicePositionPositivesChange = (currentPosition + currentSize) - slicedPositionPositives;
+            var slicePositionNegativesChange = GetSlicedPositionShift(currentPosition, bounds);
+            var slicePositionPositivesChange = GetSlicedPositionShift(currentPosition + currentSize, bounds);
 
             var newSize = currentSize += slicePositionNegativesChange;
             newSize -= slicePositionPositivesChange;
@@ -17,8 +15,12 @@ namespace TerrainTools {
             return newSize;
         }
 
-        public Vector2Int GetSlicedPositionShift(Vector2Int currentPosition) {
-            return new Vector2Int(Math.Abs(currentPosition.x), Math.Abs(currentPosition.y));
+        public Vector2Int GetSlicedPositionShift(Vector2Int currentPosition, Vector2Int bounds) {
+            var slicedPosition = SliceBrushPosition(currentPosition, bounds);
+
+            var slicePositionChange = currentPosition - slicedPosition;
+
+            return slicePositionChange;
         }
 
         public Vector2Int SliceBrushPosition(Vector2Int currentPosition, Vector2Int bounds) {

@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.Experimental.Rendering;
 using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
@@ -117,73 +118,77 @@ namespace TerrainTools {
             var commandBuffer = m_context.GetCommandBuffer();
             commandBuffer.Clear();
 
+            var heightmapFormat = terrain.terrainData.heightmapTexture.graphicsFormat;
+
             // resizing brush mask
             if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushMaskTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, actualBrushSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, m_brushSize, GraphicsFormat.R32_SFloat, false);
             }
 
             var brushMaskTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
 
-            if (brushMaskTexture.CheckSize(actualBrushSize) == false) {
+            if (brushMaskTexture.CheckSize(m_brushSize) == false) {
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
 
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, actualBrushSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, m_brushSize, GraphicsFormat.R32_SFloat, false);
             }
             //--
 
             // the texture where result of the heightmap brushes will be stored
             if(m_context.IsRenderTextureExists(ContextConstants.TerrainHeightmapTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, heightmapFormat, false);
             }
 
             var heightmapTexture = m_context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
             if(heightmapTexture.CheckSize(heightmapSize) == false) {
                 m_context.DestroyRenderTexture(ContextConstants.TerrainHeightmapTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, heightmapFormat, false);
             }
             //--
 
             // getting brush heightmap, the region of terrain under the brush.
             if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushHeightTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, heightmapFormat, false);
             }
 
             var brushHeightmap = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
 
             if(brushHeightmap.CheckSize(actualBrushSize) == false) {
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, heightmapFormat, false);
             }
             //--
 
             // the texture which will mask the heightmap
             if(m_context.IsRenderTextureExists(ContextConstants.TerrainMaskTexture) == false) {
-                var texture = m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                var texture = m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
 
-                commandBuffer.Blit(texture, m_resources.TerrainMask);
+                // resizing mask texture
+                commandBuffer.Blit(m_resources.TerrainMask, texture);
             }
 
             var maskTexture = m_context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
             if (maskTexture.CheckSize(heightmapSize) == false) {
                 m_context.DestroyRenderTexture(ContextConstants.TerrainMaskTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
 
-                commandBuffer.Blit(maskTexture, m_resources.TerrainMask);
+                // resizing mask texture
+                commandBuffer.Blit(m_resources.TerrainMask, maskTexture);
             }
             //--
 
             // the texture which will store the result of the heightmap operation
             if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushHeightmapResultTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, true);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, heightmapFormat, true);
             }
 
             var heightmapResultTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
 
             if (heightmapResultTexture.CheckSize(actualBrushSize) == false) {
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat, true);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, heightmapFormat, true);
             }
             //--
 
@@ -191,10 +196,10 @@ namespace TerrainTools {
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushPosition, heightmapSize);
             var slicedBrushSize = slicingOps.SliceBrushSize(brushPosition, heightmapSize, actualBrushSize);
-            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushPosition);
+            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushPosition, heightmapSize);
 
             var computeShader = m_context.GetCompute();
-            var dispatchSize = new Vector3Int(Mathf.Max(actualBrushSize.x / THREAD_GROUP_SIZE, 1), Mathf.Max(actualBrushSize.x / THREAD_GROUP_SIZE, 1), 1);
+            var dispatchSize = m_context.GetDispatchSize();
 
             // resizing brush mask
             var brushTexture = m_context.GetCurrentBrushShape();
@@ -219,6 +224,7 @@ namespace TerrainTools {
             if (m_inputModule.IsMouseLeftClickUp())
                 currentMode.OnBrushUp(m_context);
 
+
             // if the current brush was heightmap brush then update the terrain's heightmap with the result
             if (currentMode.GetBrushType() == BrushType.Heightmap) {
 
@@ -230,7 +236,7 @@ namespace TerrainTools {
 
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "HeightmapTexture", heightmapTexture);
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "OutputHeightmapTexture", terrain.terrainData.heightmapTexture);
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "MaskTexture", maskTexture);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "HeightmapMaskTexture", maskTexture);
 
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.MaskHeightmap, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             }

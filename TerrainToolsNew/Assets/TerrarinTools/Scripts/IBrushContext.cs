@@ -6,6 +6,8 @@ namespace TerrainTools {
     public interface IBrushContext {
 
         CommandBuffer GetCommandBuffer();
+        Vector3Int GetDispatchSize();
+        int GetThreadGroupSize();
 
         bool IsTexture2DExists(string name);
         bool IsRenderTextureExists(string name);

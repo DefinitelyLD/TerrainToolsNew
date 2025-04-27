@@ -1,4 +1,5 @@
-﻿using UnityEngine.Rendering;
+﻿using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace TerrainTools {
@@ -8,16 +9,17 @@ namespace TerrainTools {
         public static bool SubmitPass = false;
 
         protected override void Execute(CustomPassContext ctx) {
-
             if (SubmitPass == false)
                 return;
             else
                 SubmitPass = false;
 
+            Debug.Assert(CommandBuffer != null);
+
             ctx.renderContext.ExecuteCommandBuffer(CommandBuffer);
             CommandBuffer = null;
 
-            TerrainToolsUtils.Log("Command Buffer Submitted from Custom Pass.");
+            TerrainToolsUtils.Log("Command Buffer Submitted from Custom Pass Injection.");
         }
     }
 }

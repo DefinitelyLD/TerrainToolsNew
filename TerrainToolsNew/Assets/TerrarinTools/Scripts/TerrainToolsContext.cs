@@ -26,7 +26,7 @@ namespace TerrainTools {
 
         public readonly int THREAD_GROUP_SIZE;
 
-        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int tHREAD_GROUP_SIZE) {
+        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int threadGroupSize) {
             m_terrain = terrain;
 
             m_commandBuffer = new CommandBuffer();
@@ -36,7 +36,7 @@ namespace TerrainTools {
             m_renderTextures = new();
             m_graphicsTexture = new();
             m_meshes = new();
-            THREAD_GROUP_SIZE = tHREAD_GROUP_SIZE;
+            THREAD_GROUP_SIZE = threadGroupSize;
         }
 
         public void UpdateData(BrushData brushData) {
@@ -110,7 +110,7 @@ namespace TerrainTools {
             Debug.Assert(IsTexture2DExists(name) == false, $"Texture2D with name {name} already exists");
 
             var texture = new Texture2D(size.x, size.y, format, 0, TextureCreationFlags.None);
-            m_textures.Add(name, texture);
+            m_textures.Add(name, texture);  
 
             return texture;
         }
@@ -265,6 +265,18 @@ namespace TerrainTools {
 
         public Texture2D GetCurrentBrushShape() {
             return m_resources.Brushes[m_brushData.currentBrushIndex];
+        }
+
+        public Vector3Int GetDispatchSize() {
+            return new Vector3Int(
+                Math.Max(m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE, 1),
+                Math.Max(m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE, 1),
+                1
+            );
+        }
+
+        public int GetThreadGroupSize() {
+            return THREAD_GROUP_SIZE;
         }
     }
 }
