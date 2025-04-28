@@ -8,6 +8,8 @@ namespace TerrainTools {
         public Vector2Int actualBrushSize;
 
         public float brushStrength;
+        public float brushFlatHeight;
+        
         public float deltaTime;
 
         public int currentBrushIndex;

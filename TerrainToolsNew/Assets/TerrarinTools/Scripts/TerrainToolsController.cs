@@ -11,7 +11,8 @@ namespace TerrainTools {
         private float BrushStrength = 1f;
         [SerializeField]
         private float BrushAngle = 0;
-
+        [SerializeField]
+        private int BrushFlatHeight = 1;
         [SerializeField]
         private int BrushShapeIndex = 0;
 
@@ -46,6 +47,8 @@ namespace TerrainTools {
                     brushAngle = BrushAngle,
                     brushSize = BrushSize,
                     brushStrength = BrushStrength,
+                    brushHeight = BrushFlatHeight,
+
 
                     brushType = BrushType.GetName(),
 

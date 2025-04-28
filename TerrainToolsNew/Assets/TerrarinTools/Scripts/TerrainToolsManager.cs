@@ -14,26 +14,13 @@ namespace TerrainTools {
         public float brushStrength;
         public float brushAngle;
         public Vector2Int brushSize;
+        public int brushHeight;
 
         public int brushShapeIndex;
 
         public Type brushType;
 
         public float brushFallback;
-    }
-
-    public struct BrushSizeOperations {
-        public static readonly Vector2 BrushSizeToWorldSize = new Vector2(0.1f, 0.1f);
-
-        public Vector2Int BrushSizeToTexelSize(Vector2Int brushSize, Vector3 terrainSize, int textureResolution) {
-            var texelPerWorldUnit = new Vector2(textureResolution / terrainSize.x, textureResolution / terrainSize.z);
-
-            var brushSizeWorldUnits = new Vector2(brushSize.x * BrushSizeToWorldSize.x, brushSize.y * BrushSizeToWorldSize.y);
-
-            var brushSizeTexelUnits = new Vector2(brushSizeWorldUnits.x * texelPerWorldUnit.x, brushSizeWorldUnits.y * texelPerWorldUnit.y);
-
-            return new Vector2Int((int)brushSizeTexelUnits.x, (int)brushSizeTexelUnits.y);
-        }
     }
 
     public class TerrainToolsManager {
@@ -47,7 +34,9 @@ namespace TerrainTools {
         private int m_currentBrushShapeIndex = 0;
         private float m_brushStrength = 1f;
         private float m_brushAngle = 0;
+
         private Vector2Int m_brushSize = new Vector2Int(1, 1);
+        private int m_brushHeight = 0;
 
         private float m_brushFallback = 1;
         private Vector2 m_pointerPosition = Vector2.zero;
@@ -67,6 +56,7 @@ namespace TerrainTools {
             m_brushStrength = data.brushStrength;
             m_brushAngle = data.brushAngle;
             m_brushSize = data.brushSize;
+            m_brushHeight = data.brushHeight;
 
             m_currentBrushShapeIndex = data.brushShapeIndex;
 
@@ -114,19 +104,16 @@ namespace TerrainTools {
 
             var brushSizeOps = new BrushSizeOperations();
             var texelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, heightmapResolution);
+            var gpuBrushHeight = brushSizeOps.BrushHeightToGPUHeightValue(m_brushHeight, terrainSize);
 
-            var actualBrushSize = new Vector2Int(
-                (int)(Mathf.Sqrt(Mathf.Pow(texelBrushSize.x, 2) + Mathf.Pow(texelBrushSize.y, 2)) * 1),
-                (int)(Mathf.Sqrt(Mathf.Pow(texelBrushSize.x, 2) + Mathf.Pow(texelBrushSize.y, 2)) * 1));
+            var actualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(texelBrushSize);
 
-            var brushPosition = new Vector2Int(
-                (int)(((heightmapResolution / terrainSize.x) * pointerTerrainPos.x) - (actualBrushSize.x * 0.5f)),
-                (int)(((heightmapResolution / terrainSize.z) * pointerTerrainPos.z) - (actualBrushSize.y * 0.5f)));
-
+            var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
 
             var newBrushData = new BrushData();
             newBrushData.brushPosition = brushPosition;
             newBrushData.brushSize = texelBrushSize;
+            newBrushData.brushFlatHeight = gpuBrushHeight;
             newBrushData.angle = m_brushAngle;
             newBrushData.actualBrushSize = actualBrushSize;
 
@@ -249,12 +236,30 @@ namespace TerrainTools {
 
 
             var pixelError = 0;
-            if (heightmapResolution == 1025) {
-                pixelError = 1;
-            } else if (heightmapResolution == 2049) {
-                pixelError = 2;
-            } else if (heightmapResolution == 4097) {
-                pixelError = 4;
+            if (m_resources.ForcePixelErrorToZero == false) {
+                if (heightmapResolution == 1025) {
+                    pixelError = 1;
+                } else if (heightmapResolution == 2049) {
+                    pixelError = 2;
+                } else if (heightmapResolution == 4097) {
+                    pixelError = 4;
+                }
+            }
+
+            if (m_resources.ConstantTerrainLODS) {
+                var maxComplexity = 0;
+                if (heightmapResolution == 1025) {
+                    maxComplexity = 1;
+                } else if (heightmapResolution == 2049) {
+                    maxComplexity = 2;
+                } else if (heightmapResolution == 4097) {
+                    maxComplexity = 3;
+                }
+
+                if (terrain.heightmapMaximumLOD != maxComplexity) {
+                    TerrainToolsUtils.Log($"Heightmap maximum LOD set to {terrain.heightmapMaximumLOD}->{maxComplexity} for the terrain.");
+                    terrain.heightmapMaximumLOD = maxComplexity;
+                }
             }
 
             if (terrain.heightmapPixelError != pixelError) {

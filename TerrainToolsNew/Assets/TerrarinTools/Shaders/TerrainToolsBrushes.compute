@@ -156,7 +156,7 @@ void SmoothBrush(uint3 id : SV_DispatchThreadID)
     float newHeight = accumulation / (float)sampleCount;
     
     newHeight = clamp(newHeight, 0, 0.5);
-    OutputBrushHeightmapTexture[id.xy] = newHeight/;
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]

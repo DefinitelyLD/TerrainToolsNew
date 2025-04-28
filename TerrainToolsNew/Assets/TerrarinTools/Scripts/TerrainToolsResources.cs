@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 namespace TerrainTools {
+
     [CreateAssetMenu(fileName = "TerrainToolsResources", menuName = "Terrain Tools/Terrain Tools Resources", order = 0)]
     public sealed class TerrainToolsResources : ScriptableObject {
         [Header("Resources:")]
@@ -10,11 +11,18 @@ namespace TerrainTools {
         [Tooltip("The Shape to mask the terrain with.")]
         public Texture2D TerrainMask;
 
-        [Header("Other:")]
+        [Header("Shaders And Materials:")]
         [Tooltip("The compute shader containg all the brushes kernels.")]
         public ComputeShader TerrainBrushesCompute;
         [Tooltip("The material which will be used to blit textures.")]
         public Material BlitMaterial;
+
+        [Header("Detail Settings:")]
+        [Tooltip("Enablied to auto adjust terrain LOD which will keep the triangle count constant for any heightmap resolution.")]
+        public bool ConstantTerrainLODS = true;
+
+        [Tooltip("When enabled the pixel error will be forced to 0, instead of automatically adjusted by heightmap resolution.")]
+        public bool ForcePixelErrorToZero = true;
 
         [Header("Debug Settings:")]
         [Tooltip("Whether to turn on debug mode.")]
