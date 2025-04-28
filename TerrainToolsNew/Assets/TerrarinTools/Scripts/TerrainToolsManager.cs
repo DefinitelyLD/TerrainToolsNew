@@ -102,8 +102,8 @@ namespace TerrainTools {
             var pointerTerrainPos = hitPoint - terrain.transform.position;
 
             var actualBrushSize = new Vector2Int(
-                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1.4f),
-                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1.4f));
+                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1),
+                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1));
 
             var brushPosition = new Vector2Int(
                 (int)(((heightmapResolution / terrainSize.x) * pointerTerrainPos.x) - (actualBrushSize.x * 0.5f)),
@@ -280,6 +280,9 @@ namespace TerrainTools {
             commandBuffer.CopyTexture(
                 heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
                 brushHeightmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
+
+            // copy the brush height to result brush heightmap
+            commandBuffer.Blit(brushHeightmap, heightmapResultTexture, m_resources.BlitMaterial);
 
             var currentMode = m_modes[m_currentModeIndex];
 

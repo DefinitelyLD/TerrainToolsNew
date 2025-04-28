@@ -22,7 +22,14 @@ RWTexture2D<float> OutputHeightmapTexture;
 Texture2D<float> HeightmapTexture;
 
 Texture2D<float> BrushHeightmapTexture;
+
 Texture2D<float> BrushMaskTexture;
+SamplerState pointClampBrushMaskTextureSampler
+{
+    Filter = MIN_MAG_MIP_POINT;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
 
 RWTexture2D<float> OutputBrushHeightmapTexture;
 
@@ -62,26 +69,42 @@ bool IsPointInRotatedBox(float2 boxPosition, int2 boxSize, float boxAngle, int2 
     return isInside;
 }
 
+bool IsCulled(uint3 id)
+{
+    if ((int) id.x >= ActualBrushSize.x || (int) id.y >= ActualBrushSize.y)
+    {
+        return true;
+    }
+    
+    if (IsPointInRotatedBox(ActualBrushSize * 0.5, BrushSize, BrushAngle, id.xy) == false)
+    {
+        return true;
+    }
+    
+    return false;
+}
 
+float GetBrushMaskValue(uint3 id)
+{
+    float2 offset = (ActualBrushSize - BrushSize) * 0.5;
+    float2 uv = (float2(id.xy) - offset) / float2(BrushSize);
+    
+    float color = BrushMaskTexture.SampleLevel(pointClampBrushMaskTextureSampler, uv, 0);
+    return color;
+}
 
 [numthreads(32, 32,1)]
 void RaiseBrush(uint3 id : SV_DispatchThreadID)
 {
-    if ((int) id.x >= ActualBrushSize.x || (int)id.y >= ActualBrushSize.y)
+    if (IsCulled(id))
     {
-        return;
-    }
-    
-    if (IsPointInRotatedBox(ActualBrushSize / 2.0, BrushSize, BrushAngle, id.xy) == false)
-    {
-        //OutputBrushHeightmapTexture[id.xy] = 0;
-        
         return;
     }
     
     float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    float mask = GetBrushMaskValue(id);
     
-    currentHeight += BrushStrength * DeltaTime;
+    currentHeight += BrushStrength * DeltaTime * mask;
     currentHeight = clamp(currentHeight, 0, 0.5);
     
     OutputBrushHeightmapTexture[id.xy] = currentHeight;
