@@ -131,13 +131,50 @@ void LowerBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void SmoothBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float mask = GetBrushMaskValue(id);
+    
+    float accumulation = 0;
+    const uint sampleCount = 9;
+    
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+                                                                   
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+                                                                   
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    
+    float newHeight = accumulation / (float)sampleCount;
+    
+    newHeight = clamp(newHeight, 0, 0.5);
+    OutputBrushHeightmapTexture[id.xy] = newHeight/;
 }
 
 [numthreads(32, 32, 1)]
 void FlatBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    float mask = GetBrushMaskValue(id);
+    
+    currentHeight += BrushStrength * DeltaTime * mask;
+    currentHeight = clamp(currentHeight, 0, 0.5);
+    currentHeight = clamp(currentHeight, 0, BrushFlatHeight);
+    
+    OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
 
 [numthreads(32, 32, 1)]
