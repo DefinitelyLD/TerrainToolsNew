@@ -27,7 +27,7 @@ namespace TerrainTools {
         public float BrushHeightToGPUHeightValue(int brushHeight, Vector3 terrainSize) {
             var heightInWorldUnits = brushHeight * BrushSizeToWorldSize.y;
 
-            var normalizedHeight = heightInWorldUnits / BrushSizeToWorldSize.y;
+            var normalizedHeight = heightInWorldUnits / terrainSize.y;
 
             return normalizedHeight * 0.5f;
         }

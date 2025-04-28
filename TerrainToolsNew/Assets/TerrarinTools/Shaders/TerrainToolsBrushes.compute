@@ -139,19 +139,23 @@ void SmoothBrush(uint3 id : SV_DispatchThreadID)
     float mask = GetBrushMaskValue(id);
     
     float accumulation = 0;
-    const uint sampleCount = 9;
+    uint sampleCount = 0;
     
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-                                                                   
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-                                                                   
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    accumulation += BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    for (int y = -1; y < 2; y++)
+    {
+        for (int x = -1; x < 2; x++)
+        {
+            int3 index = int3(id.x + x, id.y + y, 0);
+            
+            if (index.x < 0 || index.x >= ActualBrushSize.x || index.y < 0 || index.y >= ActualBrushSize.y)
+            {
+                continue;
+            }
+            
+            accumulation += BrushHeightmapTexture.Load(index);
+            sampleCount++;
+        }
+    }
     
     float newHeight = accumulation / (float)sampleCount;
     
