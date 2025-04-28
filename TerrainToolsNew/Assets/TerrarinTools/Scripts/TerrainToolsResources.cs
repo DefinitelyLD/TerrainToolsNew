@@ -18,14 +18,14 @@ namespace TerrainTools {
         public Material BlitMaterial;
 
         [Header("Detail Settings:")]
-        [Tooltip("Enabled to auto adjust terrain LOD which will keep the triangle count constant for any heightmap resolution.")]
-        public bool ConstantTerrainLODS = true;
+        [Tooltip("Auto Adjust pixel error according to heightmap.")]
+        public bool AutoAdjustPixelError = true;
 
-        [Tooltip("It will quad divide the number of triangles the terrain LOD is outputing.")]
-        public bool LowQualityTerrainLODS = true;
+        [Tooltip("Set the terrain to generate constant number of triangles irrespect of heightmap.")]
+        public bool ConstantTerrainLODS = false;
 
-        [Tooltip("When enabled the pixel error will be forced to 0, instead of automatically adjusted by heightmap resolution.")]
-        public bool ForcePixelErrorToZero = true;
+        [Tooltip("Set to terrain to generate one lower quality LODS than usual.")]
+        public bool LowQualityTerrainLODS = false;
 
         [Header("Debug Settings:")]
         [Tooltip("Whether to turn on debug mode.")]
