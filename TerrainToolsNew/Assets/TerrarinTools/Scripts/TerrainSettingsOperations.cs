@@ -4,6 +4,8 @@ using Debug = UnityEngine.Debug;
 namespace TerrainTools {
     public struct TerrainSettingsOperations {
         public void SetTerrainSettings(Terrain terrain, TerrainToolsResources resources) {
+            return;
+
             var heightmapResolution = terrain.terrainData.heightmapResolution;
 
             var pixelError = 0;
@@ -25,6 +27,10 @@ namespace TerrainTools {
                     maxComplexity = 2;
                 } else if (heightmapResolution == 4097) {
                     maxComplexity = 3;
+                }
+
+                if (resources.LowQualityTerrainLODS) {
+                    maxComplexity += 1;
                 }
 
                 if (terrain.heightmapMaximumLOD != maxComplexity) {

@@ -135,7 +135,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1081892524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -220,7 +220,7 @@ Terrain:
   m_DetailObjectDistance: 80
   m_DetailObjectDensity: 1
   m_HeightmapPixelError: 1
-  m_SplatMapDistance: 1000
+  m_SplatMapDistance: 1005.76
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
   m_ShadowCastingMode: 2
@@ -272,7 +272,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   styledBanner: 0
   terrainRefresh: 0
-  terrainBounds: 1
+  terrainBounds: 100
   terrainSettings:
     useCustomTextures: 0
     terrainControl01: {fileID: 0}
