@@ -24,6 +24,7 @@ namespace TerrainTools {
         public Type brushType;
 
         public float brushFallback;
+        public float deltaTime;
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -69,6 +70,7 @@ namespace TerrainTools {
             m_currentModeIndex = Array.FindIndex(m_modes, mode => mode.GetType() == data.brushType);
 
             m_brushFallback = data.brushFallback;
+            m_deltaTime = data.deltaTime;
         }
 
         public void Tick() {

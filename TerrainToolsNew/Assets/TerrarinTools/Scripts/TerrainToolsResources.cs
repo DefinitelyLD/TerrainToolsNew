@@ -19,7 +19,7 @@ namespace TerrainTools {
 
         [Header("Detail Settings:")]
         [Tooltip("Auto Adjust pixel error according to heightmap.")]
-        public bool AutoAdjustPixelError = true;
+        public bool AutoAdjustPixelError = false;
 
         [Tooltip("Set the terrain to generate constant number of triangles irrespect of heightmap.")]
         public bool ConstantTerrainLODS = false;

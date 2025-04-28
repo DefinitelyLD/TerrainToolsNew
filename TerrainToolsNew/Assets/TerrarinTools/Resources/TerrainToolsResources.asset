@@ -25,5 +25,5 @@ MonoBehaviour:
   BlitMaterial: {fileID: 2100000, guid: dee3ae289df79444199c17b25c2cbb79, type: 2}
   AutoAdjustPixelError: 0
   ConstantTerrainLODS: 0
-  LowQualityTerrainLODS: 1
+  LowQualityTerrainLODS: 0
   DebugMode: 1

@@ -55,6 +55,8 @@ namespace TerrainTools {
                     brushShapeIndex = BrushShapeIndex,
 
                     brushFallback = BrushFall,
+
+                    deltaTime = Time.deltaTime
                 });
 
                 m_manager.Tick();
