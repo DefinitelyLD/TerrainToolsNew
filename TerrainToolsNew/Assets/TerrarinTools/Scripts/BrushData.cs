@@ -7,7 +7,6 @@ namespace TerrainTools {
         public float angle;
         public Vector2Int actualBrushSize;
 
-        public float smoothness;
         public float brushStrength;
         public float deltaTime;
 

@@ -39,7 +39,6 @@ int2 BrushSize;
 int2 ActualBrushSize;
 
 float BrushStrength;
-float BrushSmoothess;
 float BrushAngle;
 
 float DeltaTime;

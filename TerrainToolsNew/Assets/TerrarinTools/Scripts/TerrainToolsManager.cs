@@ -11,7 +11,6 @@ using Debug = UnityEngine.Debug;
 namespace TerrainTools {
 
     public struct TerrainToolsManagerMutateData {
-        public float brushSmoothness;
         public float brushStrength;
         public float brushAngle;
         public Vector2Int brushSize;
@@ -32,7 +31,6 @@ namespace TerrainTools {
         private int m_currentModeIndex = 0;
 
         private int m_currentBrushShapeIndex = 0;
-        private float m_brushSmoothess = 1f;
         private float m_brushStrength = 1f;
         private float m_brushAngle = 0;
         private Vector2Int m_brushSize = new Vector2Int(1, 1);
@@ -52,7 +50,6 @@ namespace TerrainTools {
         public void Mutate(TerrainToolsManagerMutateData data) {
 
             m_brushAngle = data.brushAngle;
-            m_brushSmoothess = data.brushSmoothness;
             m_brushStrength = data.brushStrength;
             m_brushAngle = data.brushAngle;
             m_brushSize = data.brushSize;
@@ -116,7 +113,6 @@ namespace TerrainTools {
             newBrushData.actualBrushSize = actualBrushSize;
 
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
-            newBrushData.smoothness = m_brushSmoothess;
             newBrushData.brushStrength = m_brushStrength;
             newBrushData.deltaTime = m_deltaTime;
 
@@ -233,10 +229,23 @@ namespace TerrainTools {
             }
             //--
 
-            if(terrain.heightmapPixelError != 0) {
-                terrain.heightmapPixelError = 0;
+
+            var pixelError = 0;
+            if (heightmapResolution == 1025) {
+                pixelError = 1;
+            } else if (heightmapResolution == 2049) {
+                pixelError = 2;
+            } else if (heightmapResolution == 4097) {
+                pixelError = 4;
             }
-            if(terrain.drawInstanced != true) {
+
+            if (terrain.heightmapPixelError != pixelError) {
+                TerrainToolsUtils.Log($"Pixel error set to {terrain.heightmapPixelError}->{pixelError} for the terrain.");
+
+                terrain.heightmapPixelError = pixelError;
+            }
+
+            if (terrain.drawInstanced != true) {
                 Debug.Assert(false, "Terrain Draw Insranced is not checked in terrain settings. Terrain Draw Instanced must be checked in the editor, It can't be set at runtime.");
             }
 
@@ -368,12 +377,6 @@ namespace TerrainTools {
 
             m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE);
             TerrainToolsUtils.LoggingEnabled = m_resources.DebugMode;
-
-            if (terrain.heightmapPixelError != 0) {
-                terrain.heightmapPixelError = 0;
-            }
-
-            TerrainToolsUtils.Log("Pixel error set to 0 for the terrain.");
         }
     }
 }
