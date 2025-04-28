@@ -22,6 +22,20 @@ namespace TerrainTools {
         public float brushFallback;
     }
 
+    public struct BrushSizeOperations {
+        public static readonly Vector2 BrushSizeToWorldSize = new Vector2(0.1f, 0.1f);
+
+        public Vector2Int BrushSizeToTexelSize(Vector2Int brushSize, Vector3 terrainSize, int textureResolution) {
+            var texelPerWorldUnit = new Vector2(textureResolution / terrainSize.x, textureResolution / terrainSize.z);
+
+            var brushSizeWorldUnits = new Vector2(brushSize.x * BrushSizeToWorldSize.x, brushSize.y * BrushSizeToWorldSize.y);
+
+            var brushSizeTexelUnits = new Vector2(brushSizeWorldUnits.x * texelPerWorldUnit.x, brushSizeWorldUnits.y * texelPerWorldUnit.y);
+
+            return new Vector2Int((int)brushSizeTexelUnits.x, (int)brushSizeTexelUnits.y);
+        }
+    }
+
     public class TerrainToolsManager {
 
         private readonly TerrainToolsResources m_resources;
@@ -98,17 +112,21 @@ namespace TerrainTools {
             var hitPoint = new Vector3(hit.point.x, terrain.transform.position.y, hit.point.z);
             var pointerTerrainPos = hitPoint - terrain.transform.position;
 
+            var brushSizeOps = new BrushSizeOperations();
+            var texelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, heightmapResolution);
+
             var actualBrushSize = new Vector2Int(
-                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1),
-                (int)(Mathf.Sqrt(Mathf.Pow(m_brushSize.x, 2) + Mathf.Pow(m_brushSize.y, 2)) * 1));
+                (int)(Mathf.Sqrt(Mathf.Pow(texelBrushSize.x, 2) + Mathf.Pow(texelBrushSize.y, 2)) * 1),
+                (int)(Mathf.Sqrt(Mathf.Pow(texelBrushSize.x, 2) + Mathf.Pow(texelBrushSize.y, 2)) * 1));
 
             var brushPosition = new Vector2Int(
                 (int)(((heightmapResolution / terrainSize.x) * pointerTerrainPos.x) - (actualBrushSize.x * 0.5f)),
                 (int)(((heightmapResolution / terrainSize.z) * pointerTerrainPos.z) - (actualBrushSize.y * 0.5f)));
 
+
             var newBrushData = new BrushData();
             newBrushData.brushPosition = brushPosition;
-            newBrushData.brushSize = m_brushSize;
+            newBrushData.brushSize = texelBrushSize;
             newBrushData.angle = m_brushAngle;
             newBrushData.actualBrushSize = actualBrushSize;
 
@@ -125,12 +143,12 @@ namespace TerrainTools {
 
             // resizing brush mask
             if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushMaskTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, m_brushSize, GraphicsFormat.R32_SFloat, false);
+                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, texelBrushSize, GraphicsFormat.R32_SFloat, false);
             }
 
             var brushMaskTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
 
-            if (brushMaskTexture.CheckSize(m_brushSize) == false) {
+            if (brushMaskTexture.CheckSize(texelBrushSize) == false) {
                 if (m_submitted) {
                     if (m_fence.passed == false) {
                         TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
@@ -139,7 +157,7 @@ namespace TerrainTools {
                 }
 
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-                brushMaskTexture = m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, m_brushSize, GraphicsFormat.R32_SFloat, false);
+                brushMaskTexture = m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, texelBrushSize, GraphicsFormat.R32_SFloat, false);
             }
             //--
 
