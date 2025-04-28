@@ -141,9 +141,9 @@ void SmoothBrush(uint3 id : SV_DispatchThreadID)
     float accumulation = 0;
     uint sampleCount = 0;
     
-    for (int y = -1; y < 2; y++)
+    for (int y = -BrushStrength; y < BrushStrength + 1; y++)
     {
-        for (int x = -1; x < 2; x++)
+        for (int x = -BrushStrength; x < BrushStrength + 1; x++)
         {
             int3 index = int3(id.x + x, id.y + y, 0);
             
