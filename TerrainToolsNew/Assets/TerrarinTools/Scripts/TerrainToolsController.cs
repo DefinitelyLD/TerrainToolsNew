@@ -61,6 +61,12 @@ namespace TerrainTools {
             }
         }
 
+        private void OnDestroy() {
+            if (m_manager != null) {
+                m_manager.Dispose();
+                m_manager = null;
+            }
+        }
         public void SetReferences(TerrainToolsControllerReferences references) {
             Debug.Assert(Terrain == null, "Terrain is already assigned.");
             Debug.Assert(ToolsResources == null, "Terrain Tools Resources is already assigned.");

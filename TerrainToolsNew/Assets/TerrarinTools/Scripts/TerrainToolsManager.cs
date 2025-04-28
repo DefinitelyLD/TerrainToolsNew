@@ -1,7 +1,9 @@
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Experimental.Rendering;
@@ -24,7 +26,7 @@ namespace TerrainTools {
         public float brushFallback;
     }
 
-    public class TerrainToolsManager {
+    public class TerrainToolsManager : IDisposable {
 
         private readonly TerrainToolsResources m_resources;
         private readonly TerrainBrush[] m_modes;
@@ -51,6 +53,9 @@ namespace TerrainTools {
         private GraphicsFence m_fence;
         private bool m_submitted = false;
 
+        private bool m_disposed;
+        private readonly Stopwatch m_stopwatch;
+
         public void Mutate(TerrainToolsManagerMutateData data) {
 
             m_brushAngle = data.brushAngle;
@@ -67,6 +72,8 @@ namespace TerrainTools {
         }
 
         public void Tick() {
+            Debug.Assert(m_context != null, "Context is not initialized or Destroyed.");
+
             var camera = Camera.main;
             Debug.Assert(camera != null, "No camera found in the scene.");
 
@@ -323,6 +330,8 @@ namespace TerrainTools {
 
             m_resources = resources;
 
+            m_stopwatch = new();
+
             // getting all brushes defined in this assembly
             var assembly = Assembly.GetAssembly(typeof(TerrainToolsManager));
             var brushesTypes = assembly
@@ -369,6 +378,23 @@ namespace TerrainTools {
 
             var terrainSettingsOps = new TerrainSettingsOperations();
             terrainSettingsOps.SetTerrainSettings(terrain, m_resources);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (!m_disposed) {
+                if (disposing) {
+                    m_context.Dispose();
+                    m_context = null;
+                }
+
+                m_disposed = true;
+            }
+        }
+
+        public void Dispose() {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
