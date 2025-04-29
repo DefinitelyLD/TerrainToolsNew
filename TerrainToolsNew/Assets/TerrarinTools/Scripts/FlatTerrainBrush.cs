@@ -30,7 +30,7 @@ namespace TerrainTools {
             commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
-            commandBuffer.SetComputeFloatParam(computeShader, "BrushFlatHeight", brushData.brushFlatHeight);
+            commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);
 
             commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
             commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);

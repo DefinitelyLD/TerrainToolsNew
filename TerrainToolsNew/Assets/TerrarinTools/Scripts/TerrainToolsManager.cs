@@ -18,6 +18,7 @@ namespace TerrainTools {
         public float brushAngle;
         public Vector2Int brushSize;
         public int brushHeight;
+        public int brushStripCount;
 
         public int brushShapeIndex;
 
@@ -36,11 +37,12 @@ namespace TerrainTools {
         private int m_currentModeIndex = 0;
 
         private int m_currentBrushShapeIndex = 0;
-        private float m_brushStrength = 1f;
-        private float m_brushAngle = 0;
 
-        private Vector2Int m_brushSize = new Vector2Int(1, 1);
-        private int m_brushHeight = 0;
+        private Vector2Int m_brushSize;
+        private int m_brushHeight;
+        private float m_brushStrength;
+        private float m_brushAngle;
+        private int m_brushStripCount;
 
         private float m_brushFallback = 1;
         private Vector2 m_pointerPosition = Vector2.zero;
@@ -64,6 +66,7 @@ namespace TerrainTools {
             m_brushAngle = data.brushAngle;
             m_brushSize = data.brushSize;
             m_brushHeight = data.brushHeight;
+            m_brushStripCount = data.brushStripCount;
 
             m_currentBrushShapeIndex = data.brushShapeIndex;
 
@@ -105,6 +108,9 @@ namespace TerrainTools {
             if (hit.transform.gameObject != terrain.gameObject)
                 return;
 
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
             if (m_submitted) {
                 m_submitted = !m_fence.passed;
             }
@@ -123,7 +129,7 @@ namespace TerrainTools {
             var newBrushData = new BrushData();
             newBrushData.brushPosition = brushPosition;
             newBrushData.brushSize = texelBrushSize;
-            newBrushData.brushFlatHeight = gpuBrushHeight;
+            newBrushData.brushHeight = gpuBrushHeight;
             newBrushData.angle = m_brushAngle;
             newBrushData.actualBrushSize = actualBrushSize;
 
@@ -245,11 +251,11 @@ namespace TerrainTools {
             //--
 
             if (m_resources.DebugMode) {
-                if (GameObject.Find("[Terrain Tools Texture Debug]") == null) {
-                    var debug = new GameObject("[Terrain Tools Texture Debug]");
+                var debug = GameObject.Find("[Terrain Tools Texture Debug]");
+                if (debug == null) {
+                    debug = new GameObject("[Terrain Tools Texture Debug]");
                     debug.AddComponent<TerrainToolsTextureDebug>();
                 } else {
-                    var debug = GameObject.Find("[Terrain Tools Texture Debug]");
                     var debugComponent = debug.GetComponent<TerrainToolsTextureDebug>();
 
                     debugComponent.Clear();
@@ -326,6 +332,11 @@ namespace TerrainTools {
             HDRPTerrainToolsInjectionPass.SubmitPass = true;
 
             m_submitted = true;
+
+            m_stopwatch.Stop();
+            TerrainToolsUtils.Log($"Brush gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
         }
 
         public TerrainToolsManager(Terrain terrain, TerrainToolsResources resources) {

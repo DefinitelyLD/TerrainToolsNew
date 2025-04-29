@@ -43,7 +43,8 @@ float BrushAngle;
 
 float DeltaTime;
 
-float BrushFlatHeight;
+float BrushHeight;
+int BrushStripCount;
 
 bool IsPointInRotatedBox(float2 boxPosition, int2 boxSize, float boxAngle, int2 target)
 {
@@ -176,7 +177,7 @@ void FlatBrush(uint3 id : SV_DispatchThreadID)
     
     currentHeight += BrushStrength * DeltaTime * mask;
     currentHeight = clamp(currentHeight, 0, 0.5);
-    currentHeight = clamp(currentHeight, 0, BrushFlatHeight);
+    currentHeight = clamp(currentHeight, 0, BrushHeight);
     
     OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
@@ -201,7 +202,18 @@ void EraseBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void StripsBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    float mask = GetBrushMaskValue(id);
+    
+    currentHeight -= BrushStrength * DeltaTime * mask;
+    currentHeight = clamp(currentHeight, 0, 0.5);
+    
+    OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
 
 [numthreads(32, 32, 1)]
