@@ -9,6 +9,10 @@ namespace TerrainTools {
         public void RegisterFence(GraphicsFence fence) {
             m_lastFence++;
 
+            if (m_lastFence >= m_fences.Length) {
+                m_lastFence = 0;
+            }
+
             if (m_fences[m_lastFence].valid) {
                 if(m_fences[m_lastFence].fence.passed == false) {
                     Debug.Assert(false, "All the fence spots are being used.");
@@ -16,16 +20,12 @@ namespace TerrainTools {
             }
 
             m_fences[m_lastFence] = (fence, true);
-
-            if(m_lastFence >= m_fences.Length) {
-                m_lastFence = -1;
-            }
         }
 
         public bool IsFencePassed() {
             bool result = true;
 
-            for (int i = 0; i <= m_fences.Length; i++) {
+            for (int i = 0; i < m_fences.Length; i++) {
                 if (m_fences[i].valid == false)
                     continue;
 

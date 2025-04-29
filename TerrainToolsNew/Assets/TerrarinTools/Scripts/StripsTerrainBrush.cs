@@ -63,8 +63,6 @@ namespace TerrainTools {
                 patternBrushHeightmapResultTexture = context.CreateRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE, brushData.actualBrushSize, terrainHeightmapFormat, true);
             }
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
-
             if (context.IsRenderTextureExists(PATTERN_TEXTURE) == false) {
                 context.CreateRenderTexture(PATTERN_TEXTURE, heightmapResolution, terrainHeightmapFormat, false);
             }
@@ -81,8 +79,11 @@ namespace TerrainTools {
                 patternTexture = context.CreateRenderTexture(PATTERN_TEXTURE, heightmapResolution, terrainHeightmapFormat, false);
             }
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, PATTERN_TEXTURE, patternTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, ContextConstants.OutputHeightmapTexture, terrain.terrainData.heightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
+
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, "BrushMaskTexture", brushShapeTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, "BrushHeightmapTexture", brushHeightmapTexture);
         }
 
         public override void OnBrushUp(IBrushContext context) {
@@ -117,6 +118,9 @@ namespace TerrainTools {
             var composeDispatchSize = context.GetDispatchSize(heightmapSize);
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.ComposePatterns, composeDispatchSize.x, composeDispatchSize.y, composeDispatchSize.z);
+
+            commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                terrain.terrainData.heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
         }
     }
 }

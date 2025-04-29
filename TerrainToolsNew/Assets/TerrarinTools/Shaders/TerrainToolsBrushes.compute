@@ -250,13 +250,10 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
     
     float wave = sqrt(max(sin((uv.x + 0.0) * BrushStripCount * PI * 2.0), 0));
 
-    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
     float newHeight = (wave * BrushHeight) * mask;
 
-    currentHeight = lerp(currentHeight, newHeight, BrushStrength * DeltaTime);
-    
-    currentHeight = clamp(currentHeight, 0, 0.5);
-    OutputBrushHeightmapTexture[id.xy] = currentHeight;
+    newHeight = clamp(newHeight, 0, 0.5);
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]
@@ -298,8 +295,18 @@ void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void ComposePatterns(uint3 id : SV_DispatchThreadID)
 {
-    float baseHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
-    float patternHeight = PatternsTexture.Load(int3(id.x, id.y, 0));
+    if (IsCulled(id))
+    {
+        return;
+    }
+    
+    if (GetBrushMaskValue(id) == 0.0)
+    {
+        return;
+    }
+    
+    float baseHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    float patternHeight = OutputBrushHeightmapTexture[id.xy];
     
     float newHeight = baseHeight + patternHeight;
     

@@ -53,7 +53,7 @@ namespace TerrainTools {
         private bool m_disposed;
         private readonly Stopwatch m_stopwatch;
 
-        private FenceManager m_fenceManager;
+        private readonly FenceManager m_fenceManager;
 
         public void Mutate(TerrainToolsManagerMutateData data) {
 
@@ -379,6 +379,8 @@ namespace TerrainTools {
 
             var terrainSettingsOps = new TerrainSettingsOperations();
             terrainSettingsOps.SetTerrainSettings(terrain, m_resources);
+
+            m_fenceManager = new();
         }
 
         protected virtual void Dispose(bool disposing) {
