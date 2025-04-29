@@ -13,9 +13,15 @@
 #pragma kernel PaintBrush
 
 #pragma kernel MaskHeightmap
+#pragma kernel ComposePatterns
+
+#define PI 3.14159265358979323846
+#define PATTERN_UV_REDZONE 4.0
 
 Texture2D<float> HeightmapMaskTexture;
 RWTexture2D<float> OutputHeightmapTexture;
+
+Texture2D<float> PatternsTexture;
 
 
 
@@ -45,6 +51,33 @@ float DeltaTime;
 
 float BrushHeight;
 int BrushStripCount;
+
+float2 RotateUV(float2 uv, float angleDegrees)
+{
+    float angleRadians = radians(angleDegrees);
+
+    uv -= 0.5;
+
+    float cosA = cos(angleRadians);
+    float sinA = sin(angleRadians);
+
+    float2 rotatedUV;
+    rotatedUV.x = uv.x * cosA - uv.y * sinA;
+    rotatedUV.y = uv.x * sinA + uv.y * cosA;
+
+    rotatedUV += 0.5;
+
+    return rotatedUV;
+}
+
+float2 UVFromId(uint3 id, float redZone)
+{
+    float2 offset = (ActualBrushSize - BrushSize) * 0.5;
+    offset += redZone;
+    float2 uv = (float2(id.xy) - offset) / float2(BrushSize - redZone);
+    
+    return uv;
+}
 
 bool IsPointInRotatedBox(float2 boxPosition, int2 boxSize, float boxAngle, int2 target)
 {
@@ -88,8 +121,8 @@ bool IsCulled(uint3 id)
 
 float GetBrushMaskValue(uint3 id)
 {
-    float2 offset = (ActualBrushSize - BrushSize) * 0.5;
-    float2 uv = (float2(id.xy) - offset) / float2(BrushSize);
+    float2 uv = UVFromId(id, 0);
+    uv = RotateUV(uv, BrushAngle);
     
     float color = BrushMaskTexture.SampleLevel(pointClampBrushMaskTextureSampler, uv, 0);
     return color;
@@ -193,8 +226,10 @@ void EraseBrush(uint3 id : SV_DispatchThreadID)
     float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
     float mask = GetBrushMaskValue(id);
     
-    currentHeight -= BrushStrength * DeltaTime * mask;
-    currentHeight = clamp(currentHeight, 0, 0.5);
+    if (mask > 0)
+    {
+        currentHeight = 0;
+    }
     
     OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
@@ -207,12 +242,20 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
         return;
     }
     
-    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
     float mask = GetBrushMaskValue(id);
+    mask = mask > 0.0? 1.0 : 0.0;
+   
+    float2 uv = UVFromId(id, PATTERN_UV_REDZONE);
+    uv = RotateUV(uv, BrushAngle);
     
-    currentHeight -= BrushStrength * DeltaTime * mask;
+    float wave = sqrt(max(sin((uv.x + 0.0) * BrushStripCount * PI * 2.0), 0));
+
+    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
+    float newHeight = (wave * BrushHeight) * mask;
+
+    currentHeight = lerp(currentHeight, newHeight, BrushStrength * DeltaTime);
+    
     currentHeight = clamp(currentHeight, 0, 0.5);
-    
     OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
 
@@ -250,4 +293,15 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
 void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 {
     
+}
+
+[numthreads(32, 32, 1)]
+void ComposePatterns(uint3 id : SV_DispatchThreadID)
+{
+    float baseHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
+    float patternHeight = PatternsTexture.Load(int3(id.x, id.y, 0));
+    
+    float newHeight = baseHeight + patternHeight;
+    
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }

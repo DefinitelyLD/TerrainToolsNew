@@ -8,6 +8,7 @@ namespace TerrainTools {
         CommandBuffer GetCommandBuffer();
         Vector3Int GetDispatchSize();
         int GetThreadGroupSize();
+       Vector3Int GetDispatchSize(Vector2Int resolution);
 
         bool IsTexture2DExists(string name);
         bool IsRenderTextureExists(string name);

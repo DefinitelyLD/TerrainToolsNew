@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GluonGui.Dialog;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using UnityEngine;
@@ -268,8 +269,10 @@ namespace TerrainTools {
         }
 
         public Vector3Int GetDispatchSize() {
+            Debug.Assert(m_brushData.actualBrushSize.x == m_brushData.actualBrushSize.y, "Actual Brush should have been calculated as a square.");
+
             return new Vector3Int(
-                m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE + 1,
+                m_brushData.actualBrushSize.x / THREAD_GROUP_SIZE + 1,
                 m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE + 1,
                 1
             );
@@ -277,6 +280,15 @@ namespace TerrainTools {
 
         public int GetThreadGroupSize() {
             return THREAD_GROUP_SIZE;
+        }
+
+        public Vector3Int GetDispatchSize(Vector2Int resolution) {
+            Debug.Assert(resolution.x == resolution.y, "Resolution should be a square.");
+
+            return new Vector3Int(
+                resolution.x / THREAD_GROUP_SIZE + 1,
+                resolution.y / THREAD_GROUP_SIZE + 1,
+                1);
         }
     }
 }

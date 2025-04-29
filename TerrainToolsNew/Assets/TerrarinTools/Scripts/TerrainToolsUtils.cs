@@ -10,5 +10,12 @@ namespace TerrainTools {
 
             Debug.Log(message);
         }
+
+        public static void LogWarning(string message) {
+            if (!LoggingEnabled)
+                return;
+
+            Debug.LogWarning(message);
+        }
     }
 }

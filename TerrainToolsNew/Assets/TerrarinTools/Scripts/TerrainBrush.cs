@@ -1,9 +1,9 @@
-﻿namespace TerrainTools {
+﻿using UnityEditor;
+
+namespace TerrainTools {
 
     public abstract class TerrainBrush {
         public abstract BrushType GetBrushType();
-
-
         public virtual void Prepare(IBrushContext context) {
             // default implementation does nothing
         }
@@ -11,6 +11,10 @@
         public abstract void OnBrushDown(IBrushContext context);
         public abstract void OnBrushUpdate(IBrushContext context);
         public abstract void OnBrushUp(IBrushContext context);
+
+        public virtual bool AllowCopyBrushHeightmapResultToTerrainHeightmap() {
+            return true;
+        }
 
         public virtual void RenderHologram(IBrushContext context) {
             // default implementation does nothing

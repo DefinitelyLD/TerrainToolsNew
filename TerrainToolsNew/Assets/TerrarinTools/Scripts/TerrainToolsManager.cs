@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using static UnityEngine.UI.DefaultControls;
 using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
@@ -18,7 +17,6 @@ namespace TerrainTools {
         public float brushAngle;
         public Vector2Int brushSize;
         public int brushHeight;
-        public int brushStripCount;
 
         public int brushShapeIndex;
 
@@ -42,7 +40,6 @@ namespace TerrainTools {
         private int m_brushHeight;
         private float m_brushStrength;
         private float m_brushAngle;
-        private int m_brushStripCount;
 
         private float m_brushFallback = 1;
         private Vector2 m_pointerPosition = Vector2.zero;
@@ -53,11 +50,10 @@ namespace TerrainTools {
 
         private const int THREAD_GROUP_SIZE = 32;
 
-        private GraphicsFence m_fence;
-        private bool m_submitted = false;
-
         private bool m_disposed;
         private readonly Stopwatch m_stopwatch;
+
+        private FenceManager m_fenceManager;
 
         public void Mutate(TerrainToolsManagerMutateData data) {
 
@@ -66,7 +62,6 @@ namespace TerrainTools {
             m_brushAngle = data.brushAngle;
             m_brushSize = data.brushSize;
             m_brushHeight = data.brushHeight;
-            m_brushStripCount = data.brushStripCount;
 
             m_currentBrushShapeIndex = data.brushShapeIndex;
 
@@ -111,9 +106,7 @@ namespace TerrainTools {
             m_stopwatch.Reset();
             m_stopwatch.Start();
 
-            if (m_submitted) {
-                m_submitted = !m_fence.passed;
-            }
+            var hasFencePassed = m_fenceManager.IsFencePassed();
 
             var hitPoint = new Vector3(hit.point.x, terrain.transform.position.y, hit.point.z);
             var pointerTerrainPos = hitPoint - terrain.transform.position;
@@ -125,17 +118,20 @@ namespace TerrainTools {
             var actualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(texelBrushSize);
 
             var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
+            var brushStripeCount = brushSizeOps.CalculateStripCount(m_brushSize, m_brushHeight);
 
             var newBrushData = new BrushData();
             newBrushData.brushPosition = brushPosition;
             newBrushData.brushSize = texelBrushSize;
             newBrushData.brushHeight = gpuBrushHeight;
             newBrushData.angle = m_brushAngle;
+            newBrushData.stripCount = brushStripeCount;
             newBrushData.actualBrushSize = actualBrushSize;
 
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
             newBrushData.brushStrength = m_brushStrength;
             newBrushData.deltaTime = m_deltaTime;
+            newBrushData.hasResourceFencePassed = hasFencePassed;
 
             m_context.UpdateData(newBrushData);
 
@@ -152,11 +148,9 @@ namespace TerrainTools {
             var brushMaskTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
 
             if (brushMaskTexture.CheckSize(texelBrushSize) == false) {
-                if (m_submitted) {
-                    if (m_fence.passed == false) {
-                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
-                        return;
-                    }
+                if (!hasFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
                 }
 
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
@@ -172,11 +166,9 @@ namespace TerrainTools {
             var heightmapTexture = m_context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
             if(heightmapTexture.CheckSize(heightmapSize) == false) {
-                if (m_submitted) {
-                    if (m_fence.passed == false) {
-                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
-                        return;
-                    }
+                if (!hasFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
                 }
 
                 m_context.DestroyRenderTexture(ContextConstants.TerrainHeightmapTexture);
@@ -192,11 +184,9 @@ namespace TerrainTools {
             var brushHeightmap = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
 
             if(brushHeightmap.CheckSize(actualBrushSize) == false) {
-                if (m_submitted) {
-                    if (m_fence.passed == false) {
-                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
-                        return;
-                    }
+                if (!hasFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
                 }
 
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightTexture);
@@ -215,11 +205,9 @@ namespace TerrainTools {
             var maskTexture = m_context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
             if (maskTexture.CheckSize(heightmapSize) == false) {
-                if (m_submitted) {
-                    if (m_fence.passed == false) {
-                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
-                        return;
-                    }
+                if (!hasFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
                 }
 
                 m_context.DestroyRenderTexture(ContextConstants.TerrainMaskTexture);
@@ -238,11 +226,9 @@ namespace TerrainTools {
             var heightmapResultTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
 
             if (heightmapResultTexture.CheckSize(actualBrushSize) == false) {
-                if (m_submitted) {
-                    if (m_fence.passed == false) {
-                        TerrainToolsUtils.Log("Waiting for the fence to pass before resizing texture.");
-                        return;
-                    }
+                if (!hasFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
                 }
 
                 m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
@@ -308,12 +294,15 @@ namespace TerrainTools {
             if (m_inputModule.IsMouseLeftClickUp())
                 currentMode.OnBrushUp(m_context);
 
+            var allowBrushHeightmapResultToTerrainHeightmap = currentMode.AllowCopyBrushHeightmapResultToTerrainHeightmap();
 
             // if the current brush was heightmap brush then update the terrain's heightmap with the result
             if (currentMode.GetBrushType() == BrushType.Heightmap) {
 
-                commandBuffer.CopyTexture(heightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                    terrain.terrainData.heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                if (allowBrushHeightmapResultToTerrainHeightmap) {
+                    commandBuffer.CopyTexture(heightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                        terrain.terrainData.heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                }
 
                 // renewing the heightmap texture copy
                 commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture, m_resources.BlitMaterial);
@@ -325,13 +314,12 @@ namespace TerrainTools {
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.MaskHeightmap, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             }
 
-            m_fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
+            var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
+            m_fenceManager.RegisterFence(fence);
 
             // sumbitting for execution
             HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
             HDRPTerrainToolsInjectionPass.SubmitPass = true;
-
-            m_submitted = true;
 
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +

@@ -14,5 +14,7 @@ namespace TerrainTools {
         public float deltaTime;
 
         public int currentBrushIndex;
+
+        public bool hasResourceFencePassed;
     }
 }
