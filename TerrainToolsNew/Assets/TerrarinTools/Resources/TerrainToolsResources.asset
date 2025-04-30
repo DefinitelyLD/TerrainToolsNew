@@ -24,6 +24,5 @@ MonoBehaviour:
   TerrainBrushesCompute: {fileID: 7200000, guid: eb4ded7296eef1d40beab4f97431bcdf, type: 3}
   BlitMaterial: {fileID: 2100000, guid: dee3ae289df79444199c17b25c2cbb79, type: 2}
   AutoAdjustPixelError: 1
-  ConstantTerrainLODS: 0
-  LowQualityTerrainLODS: 0
+  HalfTerrainToolsFPS: 1
   DebugMode: 1

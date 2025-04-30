@@ -70,24 +70,14 @@ namespace TerrainTools {
             }
         }
         public virtual void Compose(IBrushContext context) {
-
-            var terrain = context.GetTerrain();
-            var brushData = context.GetBrushData();
-
             if (GetBrushType() == BrushType.Heightmap) {
-                var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
-
                 // composing
                 var composer = new TerrainToolsComposer();
                 composer.ComposeHeightmapPass(context);
 
-                // tweening
-                var tweener = new TerrainToolsTweener();
-                tweener.TweenHeightmapPass(context, brushData.tweenData, unityTerrainHeightmap);
-
                 // masking
                 var masker = new TerrainToolsMasker();
-                masker.MaskHeightmapPass(context, unityTerrainHeightmap);
+                masker.MaskHeightmapPass(context);
             }
         }
 

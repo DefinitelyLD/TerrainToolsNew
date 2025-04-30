@@ -6,7 +6,6 @@ namespace TerrainTools {
 
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
-            var terrain = context.GetTerrain();
 
             var finalHeightmap = context.GetRenderTexture(ContextConstants.FinalTerrainHeightmap);
             var bufferHeightmap = context.GetRenderTexture(ContextConstants.BufferHeightmapTexture);

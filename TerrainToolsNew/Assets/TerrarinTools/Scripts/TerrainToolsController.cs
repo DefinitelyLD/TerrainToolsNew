@@ -18,6 +18,8 @@ namespace TerrainTools {
 
         [SerializeField]
         private BrushMode BrushType = BrushMode.Raise;
+        [SerializeField]
+        private float TweenStrength = 1;
 
         [SerializeField]
         private float BrushFall = 1;
@@ -55,7 +57,8 @@ namespace TerrainTools {
 
                     brushFallback = BrushFall,
 
-                    deltaTime = Time.deltaTime
+                    deltaTime = Time.deltaTime,
+                    tweenStrength = TweenStrength,
                 });
 
                 m_manager.Tick();

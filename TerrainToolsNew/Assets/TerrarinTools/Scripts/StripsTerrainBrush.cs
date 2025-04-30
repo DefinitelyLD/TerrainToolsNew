@@ -82,6 +82,10 @@ namespace TerrainTools {
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "BrushMaskTexture", brushShapeTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "BrushHeightmapTexture", brushHeightmapTexture);
+
+            if(context.IsHeightmapCompositiveExists(PATTERN_TEXTURE) == false) {
+                context.RegisterHeightmapCompositive(PATTERN_TEXTURE);
+            }
         }
 
         public override void OnBrushUp(IBrushContext context) {

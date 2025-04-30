@@ -21,6 +21,10 @@ namespace TerrainTools {
         [Tooltip("Auto Adjust pixel error to 1.")]
         public bool AutoAdjustPixelError = false;
 
+        [Header("Perfomance Settings:")]
+        [Tooltip("It will run the terrain tools at half the frame.")]
+        public bool HalfTerrainToolsFPS = false;
+
         [Header("Debug Settings:")]
         [Tooltip("Whether to turn on debug mode.")]
         public bool DebugMode = false;

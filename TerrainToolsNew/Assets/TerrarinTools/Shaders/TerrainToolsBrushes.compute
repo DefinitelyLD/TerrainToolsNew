@@ -290,7 +290,14 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 {
+    float mask = HeightmapMaskTexture.Load(int3(id.x, id.y, 0));
+    float height = HeightmapTexture.Load(int3(id.x, id.y, 0));
     
+    mask = mask > 0.0 ? 1.0 : 0.0;
+    
+    float newHeight = height * mask;
+    
+    OutputHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]
