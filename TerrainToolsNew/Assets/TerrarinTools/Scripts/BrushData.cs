@@ -16,5 +16,7 @@ namespace TerrainTools {
         public int currentBrushIndex;
 
         public bool hasResourceFencePassed;
+
+        public TweenData tweenData;
     }
 }

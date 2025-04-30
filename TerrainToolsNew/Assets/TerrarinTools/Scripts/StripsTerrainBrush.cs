@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using static UnityEngine.UI.DefaultControls;
 
 namespace TerrainTools {
     [TerrainBrush]
@@ -10,9 +11,6 @@ namespace TerrainTools {
 
         public override BrushType GetBrushType() {
             return BrushType.Heightmap;
-        }
-        public override bool AllowCopyBrushHeightmapResultToTerrainHeightmap() {
-            return false;
         }
 
         public override void OnBrushDown(IBrushContext context) {
@@ -81,15 +79,22 @@ namespace TerrainTools {
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, "BrushMaskTexture", brushShapeTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.ComposePatterns, "BrushHeightmapTexture", brushHeightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "BrushMaskTexture", brushShapeTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "BrushHeightmapTexture", brushHeightmapTexture);
         }
 
         public override void OnBrushUp(IBrushContext context) {
         }
 
         public override void OnBrushUpdate(IBrushContext context) {
+            if (context.IsDebugMode()) {
+                var debug = context.GetTextureDebug();
+
+                debug.SetTexture("Pattern Texture", context.GetRenderTexture(PATTERN_TEXTURE));
+                debug.SetTexture("Pattern BrushHeightmap Result Texture", context.GetRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE));
+            }
+
 
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
@@ -102,9 +107,7 @@ namespace TerrainTools {
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
 
             var brushData = context.GetBrushData();
-            var terrain = context.GetTerrain();
-
-            var heightmapSize = new Vector2Int(terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution);
+            var heightmapSize = patternTexture.GetSize();
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
@@ -114,13 +117,6 @@ namespace TerrainTools {
 
             commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
                 patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
-
-            var composeDispatchSize = context.GetDispatchSize(heightmapSize);
-
-            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.ComposePatterns, composeDispatchSize.x, composeDispatchSize.y, composeDispatchSize.z);
-
-            commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                terrain.terrainData.heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
         }
     }
 }

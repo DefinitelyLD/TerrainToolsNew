@@ -13,31 +13,30 @@
 #pragma kernel PaintBrush
 
 #pragma kernel MaskHeightmap
-#pragma kernel ComposePatterns
+#pragma kernel Compose
+#pragma kernel Tween
 
 #define PI 3.14159265358979323846
 #define PATTERN_UV_REDZONE 4.0
 
 Texture2D<float> HeightmapMaskTexture;
-RWTexture2D<float> OutputHeightmapTexture;
-
-Texture2D<float> PatternsTexture;
-
-
 
 Texture2D<float> HeightmapTexture;
+Texture2D<float> TweenStateHeightmap;
+Texture2D<float> CompositiveHeightmapTexture;
+
+RWTexture2D<float> OutputHeightmapTexture;
 
 Texture2D<float> BrushHeightmapTexture;
-
 Texture2D<float> BrushMaskTexture;
+RWTexture2D<float> OutputBrushHeightmapTexture;
+
 SamplerState pointClampBrushMaskTextureSampler
 {
     Filter = MIN_MAG_MIP_POINT;
     AddressU = Clamp;
     AddressV = Clamp;
 };
-
-RWTexture2D<float> OutputBrushHeightmapTexture;
 
 int2 BrushPosition;
 
@@ -51,6 +50,8 @@ float DeltaTime;
 
 float BrushHeight;
 int BrushStripCount;
+
+float TweenStrength;
 
 float2 RotateUV(float2 uv, float angleDegrees)
 {
@@ -293,22 +294,23 @@ void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(32, 32, 1)]
-void ComposePatterns(uint3 id : SV_DispatchThreadID)
+void Compose(uint3 id : SV_DispatchThreadID)
+{   
+    float baseHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
+    float compositiveHeight = HeightmapTexture[id.xy];
+    
+    float newHeight = baseHeight + compositiveHeight;
+    
+    OutputHeightmapTexture[id.xy] = newHeight;
+}
+
+[numthreads(32, 32, 1)]
+void Tween(uint3 id : SV_DispatchThreadID)
 {
-    if (IsCulled(id))
-    {
-        return;
-    }
+    float targetHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
+    float currentHeight = TweenStateHeightmap.Load(int3(id.x, id.y, 0));
     
-    if (GetBrushMaskValue(id) == 0.0)
-    {
-        return;
-    }
+    float newHeight = lerp(currentHeight, targetHeight, DeltaTime * TweenStrength);
     
-    float baseHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
-    float patternHeight = OutputBrushHeightmapTexture[id.xy];
-    
-    float newHeight = baseHeight + patternHeight;
-    
-    OutputBrushHeightmapTexture[id.xy] = newHeight;
+    OutputHeightmapTexture[id.xy] = newHeight;
 }

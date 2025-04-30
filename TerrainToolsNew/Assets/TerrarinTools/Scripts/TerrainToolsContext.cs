@@ -1,7 +1,5 @@
-﻿using GluonGui.Dialog;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -25,7 +23,11 @@ namespace TerrainTools {
         private readonly Dictionary<string, GraphicsTexture> m_graphicsTexture;
         private readonly Dictionary<string, Mesh> m_meshes;
 
+        private readonly List<string> m_heightmapCompositives;
+
         public readonly int THREAD_GROUP_SIZE;
+
+        private TerrainToolsTextureDebug m_debug;
 
         public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int threadGroupSize) {
             m_terrain = terrain;
@@ -38,11 +40,43 @@ namespace TerrainTools {
             m_graphicsTexture = new();
             m_meshes = new();
             THREAD_GROUP_SIZE = threadGroupSize;
+
+            m_heightmapCompositives = new();
         }
 
-        public void UpdateData(BrushData brushData) {
+        public void UpdateData(BrushData brushData, TerrainToolsTextureDebug debug) {
             m_brushData = brushData;
+            m_debug = debug;
         }
+
+        public bool IsHeightmapCompositiveExists(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+
+            return m_heightmapCompositives.Contains(name);
+        }
+        public void RegisterHeightmapCompositive(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+            Debug.Assert(IsHeightmapCompositiveExists(name) == false, $"Heightmap Compositive with name {name} already exists.");
+
+            Debug.Assert(IsRenderTextureExists(name), $"Heightmap Compositive with name {name} does not exists in RenderTextures.");
+
+            m_heightmapCompositives.Add(name);
+        }
+
+        public void RemoveHeightmapCompositive(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+            Debug.Assert(IsHeightmapCompositiveExists(name), $"Heightmap Compositive with name {name} does not exists.");
+
+            m_heightmapCompositives.Remove(name);
+        }
+        public RenderTexture GetHeightmapCompositive(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+            Debug.Assert(IsHeightmapCompositiveExists(name), $"Heightmap Compositive with name {name} does not exists.");
+            Debug.Assert(IsRenderTextureExists(name), $"Heightmap Compositive with name {name} does not exists in RenderTextures.");
+
+            return GetRenderTexture(name);
+        }
+
 
         private void Dispose(bool disposing) {
             if (!m_disposed) {
@@ -289,6 +323,33 @@ namespace TerrainTools {
                 resolution.x / THREAD_GROUP_SIZE + 1,
                 resolution.y / THREAD_GROUP_SIZE + 1,
                 1);
+        }
+
+        public bool IsDebugMode() {
+            return m_resources.DebugMode;
+        }
+
+        public Material GetBlitMaterial() {
+            return m_resources.BlitMaterial;
+        }
+
+        public Texture2D GetTerrainMaskTexture() {
+            return m_resources.TerrainMask;
+        }
+
+        public TerrainToolsTextureDebug GetTextureDebug() {
+            Debug.Assert(m_resources.DebugMode, "Obtaining Texture Debug Interface while Debug mode is not enabled.");
+
+            return m_debug;
+        }
+
+        public RenderTexture[] GetAllHeightmapCompositives() {
+            var compositives = new RenderTexture[m_heightmapCompositives.Count];
+            for (int i = 0; i < m_heightmapCompositives.Count; i++) {
+                compositives[i] = GetHeightmapCompositive(m_heightmapCompositives[i]);
+            }
+
+            return compositives;
         }
     }
 }

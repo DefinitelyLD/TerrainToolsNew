@@ -15,6 +15,7 @@
         PaintBrush,
 
         MaskHeightmap,
-        ComposePatterns
+        Compose,
+        Tween
     }
 }

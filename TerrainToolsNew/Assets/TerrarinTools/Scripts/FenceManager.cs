@@ -38,7 +38,7 @@ namespace TerrainTools {
             return true;
         }
 
-        public FenceManager(int maxFences = 4) {
+        public FenceManager(int maxFences = 2) {
             m_fences = new (GraphicsFence fence, bool valid)[maxFences];
         }
     }

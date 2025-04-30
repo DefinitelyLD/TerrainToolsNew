@@ -5,6 +5,14 @@ using UnityEngine.Rendering;
 namespace TerrainTools {
     public interface IBrushContext {
 
+        bool IsHeightmapCompositiveExists(string name);
+        void RegisterHeightmapCompositive(string name);
+        void RemoveHeightmapCompositive(string name);
+        RenderTexture GetHeightmapCompositive(string name);
+        RenderTexture[] GetAllHeightmapCompositives();
+
+        bool IsDebugMode();
+        Material GetBlitMaterial();
         CommandBuffer GetCommandBuffer();
         Vector3Int GetDispatchSize();
         int GetThreadGroupSize();
@@ -37,5 +45,8 @@ namespace TerrainTools {
 
         BrushData GetBrushData();
         Texture2D GetCurrentBrushShape();
+        Texture2D GetTerrainMaskTexture();
+        TerrainToolsTextureDebug GetTextureDebug();
+
     }
 }

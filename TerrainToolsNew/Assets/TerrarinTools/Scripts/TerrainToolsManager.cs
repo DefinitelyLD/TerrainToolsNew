@@ -24,6 +24,7 @@ namespace TerrainTools {
 
         public float brushFallback;
         public float deltaTime;
+        public float tweenStrength;
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -40,6 +41,8 @@ namespace TerrainTools {
         private int m_brushHeight;
         private float m_brushStrength;
         private float m_brushAngle;
+
+        private float m_tweenStrength;
 
         private float m_brushFallback = 1;
         private Vector2 m_pointerPosition = Vector2.zero;
@@ -62,6 +65,7 @@ namespace TerrainTools {
             m_brushAngle = data.brushAngle;
             m_brushSize = data.brushSize;
             m_brushHeight = data.brushHeight;
+            m_tweenStrength = data.tweenStrength;
 
             m_currentBrushShapeIndex = data.brushShapeIndex;
 
@@ -132,160 +136,32 @@ namespace TerrainTools {
             newBrushData.brushStrength = m_brushStrength;
             newBrushData.deltaTime = m_deltaTime;
             newBrushData.hasResourceFencePassed = hasFencePassed;
+            newBrushData.tweenData = new TweenData() {
+                deltaTime = m_deltaTime,
+                strength = m_tweenStrength,
+            };
 
-            m_context.UpdateData(newBrushData);
+            TerrainToolsTextureDebug textureDebug = null;
+            if (m_context.IsDebugMode()) {
+                var debug = GameObject.Find("[Terrain Tools Texture Debug]");
+                if (debug == null) {
+                    debug = new GameObject("[Terrain Tools Texture Debug]");
+                    textureDebug = debug.AddComponent<TerrainToolsTextureDebug>();
+                }
+
+                textureDebug.Clear();
+            }
+
+            m_context.UpdateData(newBrushData, textureDebug);
 
             var commandBuffer = m_context.GetCommandBuffer();
             commandBuffer.Clear();
 
-            var heightmapFormat = terrain.terrainData.heightmapTexture.graphicsFormat;
-
-            // resizing brush mask
-            if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushMaskTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, texelBrushSize, GraphicsFormat.R32_SFloat, false);
-            }
-
-            var brushMaskTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-
-            if (brushMaskTexture.CheckSize(texelBrushSize) == false) {
-                if (!hasFencePassed) {
-                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
-                    return;
-                }
-
-                m_context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-                brushMaskTexture = m_context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, texelBrushSize, GraphicsFormat.R32_SFloat, false);
-            }
-            //--
-
-            // the texture where result of the heightmap brushes will be stored
-            if(m_context.IsRenderTextureExists(ContextConstants.TerrainHeightmapTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, heightmapFormat, false);
-            }
-
-            var heightmapTexture = m_context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
-
-            if(heightmapTexture.CheckSize(heightmapSize) == false) {
-                if (!hasFencePassed) {
-                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
-                    return;
-                }
-
-                m_context.DestroyRenderTexture(ContextConstants.TerrainHeightmapTexture);
-                heightmapTexture = m_context.CreateRenderTexture(ContextConstants.TerrainHeightmapTexture, heightmapSize, heightmapFormat, false);
-            }
-            //--
-
-            // getting brush heightmap, the region of terrain under the brush.
-            if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushHeightTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, heightmapFormat, false);
-            }
-
-            var brushHeightmap = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
-
-            if(brushHeightmap.CheckSize(actualBrushSize) == false) {
-                if (!hasFencePassed) {
-                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
-                    return;
-                }
-
-                m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightTexture);
-                brushHeightmap = m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightTexture, actualBrushSize, heightmapFormat, false);
-            }
-            //--
-
-            // the texture which will mask the heightmap
-            if(m_context.IsRenderTextureExists(ContextConstants.TerrainMaskTexture) == false) {
-                var texture = m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
-
-                // resizing mask texture
-                commandBuffer.Blit(m_resources.TerrainMask, texture, m_resources.BlitMaterial);
-            }
-
-            var maskTexture = m_context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
-
-            if (maskTexture.CheckSize(heightmapSize) == false) {
-                if (!hasFencePassed) {
-                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
-                    return;
-                }
-
-                m_context.DestroyRenderTexture(ContextConstants.TerrainMaskTexture);
-                maskTexture = m_context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
-
-                // resizing mask texture
-                 commandBuffer.Blit(m_resources.TerrainMask, maskTexture, m_resources.BlitMaterial);
-            }
-            //--
-
-            // the texture which will store the result of the heightmap operation
-            if (m_context.IsRenderTextureExists(ContextConstants.TerrainBrushHeightmapResultTexture) == false) {
-                m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, heightmapFormat, true);
-            }
-
-            var heightmapResultTexture = m_context.GetRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
-
-            if (heightmapResultTexture.CheckSize(actualBrushSize) == false) {
-                if (!hasFencePassed) {
-                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
-                    return;
-                }
-
-                m_context.DestroyRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
-                heightmapResultTexture = m_context.CreateRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture, actualBrushSize, heightmapFormat, true);
-            }
-            //--
-
-            if (m_resources.DebugMode) {
-                var debug = GameObject.Find("[Terrain Tools Texture Debug]");
-                if (debug == null) {
-                    debug = new GameObject("[Terrain Tools Texture Debug]");
-                    debug.AddComponent<TerrainToolsTextureDebug>();
-                } else {
-                    var debugComponent = debug.GetComponent<TerrainToolsTextureDebug>();
-
-                    debugComponent.Clear();
-
-                    debugComponent.SetTexture("Brush Mask", brushMaskTexture);
-                    debugComponent.SetTexture("Heightmap", heightmapTexture);
-                    debugComponent.SetTexture("Brush Heightmap", brushHeightmap);
-                    debugComponent.SetTexture("Heightmap Result", heightmapResultTexture);
-                    debugComponent.SetTexture("Mask", maskTexture);
-                    debugComponent.SetTexture("Terrain Heightmap", terrain.terrainData.heightmapTexture);
-                }
-            }
-
-            var terrainSettingsOps = new TerrainSettingsOperations();
-            terrainSettingsOps.SetTerrainSettings(terrain, m_resources);
-
-            // slicing brush size and position to be inbounds of the heightmap.
-            var slicingOps = new SlicingOperations();
-            var slicedBrushPosition = slicingOps.SliceBrushPosition(brushPosition, heightmapSize);
-            var slicedBrushSize = slicingOps.SliceBrushSize(brushPosition, heightmapSize, actualBrushSize);
-            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushPosition, heightmapSize);
-            slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
-
-            var computeShader = m_context.GetCompute();
-            var dispatchSize = m_context.GetDispatchSize();
-
-            // resizing brush mask
-            var brushTexture = m_context.GetCurrentBrushShape();
-            commandBuffer.Blit(brushTexture, brushMaskTexture, m_resources.BlitMaterial);
-
-            // getting heightmap
-            commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture, m_resources.BlitMaterial);
-
-            // getting brush heightmap
-            commandBuffer.CopyTexture(
-                heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
-                brushHeightmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
-
-            // copy the brush height to result brush heightmap
-            commandBuffer.Blit(brushHeightmap, heightmapResultTexture, m_resources.BlitMaterial);
-
             var currentMode = m_modes[m_currentModeIndex];
 
             // recording commands from current brush mode
+            currentMode.Prepare(m_context);
+
             if (m_inputModule.IsMouseLeftClickDown())
                 currentMode.OnBrushDown(m_context);
 
@@ -294,28 +170,12 @@ namespace TerrainTools {
             if (m_inputModule.IsMouseLeftClickUp())
                 currentMode.OnBrushUp(m_context);
 
-            var allowBrushHeightmapResultToTerrainHeightmap = currentMode.AllowCopyBrushHeightmapResultToTerrainHeightmap();
-
-            // if the current brush was heightmap brush then update the terrain's heightmap with the result
-            if (currentMode.GetBrushType() == BrushType.Heightmap) {
-
-                if (allowBrushHeightmapResultToTerrainHeightmap) {
-                    commandBuffer.CopyTexture(heightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                        terrain.terrainData.heightmapTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
-                }
-
-                // renewing the heightmap texture copy
-                commandBuffer.Blit(terrain.terrainData.heightmapTexture, heightmapTexture, m_resources.BlitMaterial);
-
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "HeightmapTexture", heightmapTexture);
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "OutputHeightmapTexture", terrain.terrainData.heightmapTexture);
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.MaskHeightmap, "HeightmapMaskTexture", maskTexture);
-
-                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.MaskHeightmap, dispatchSize.x, dispatchSize.y, dispatchSize.z);
-            }
+            currentMode.CopyResults(m_context);
+            currentMode.Compose(m_context);
 
             var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
             m_fenceManager.RegisterFence(fence);
+            // -- --
 
             // sumbitting for execution
             HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;

@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace TerrainTools {
     [TerrainBrush]
@@ -20,8 +19,6 @@ namespace TerrainTools {
             var terrainHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
             var brushData = context.GetBrushData();
-
-            var heightmapSize = new Vector2Int(terrainHeightmapTexture.width, terrainHeightmapTexture.height);
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.RaiseBrush, "TerrainHeightmapTexture", terrainHeightmapTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.RaiseBrush, "BrushHeightmapTexture", brushHeightmapTexture);
