@@ -2,10 +2,11 @@
 
 namespace TerrainTools {
     public struct TerrainToolsTweener {
-        public readonly void TweenHeightmapPass(IBrushContext context, TweenData data, RenderTexture output) {
+        public readonly void TweenHeightmapPass(IBrushContext context, RenderTexture output) {
 
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
+            var data = context.GetBrushData().tweenData;
 
             var finalHeightmap = context.GetRenderTexture(ContextConstants.FinalTerrainHeightmap);
             var bufferHeightmap = context.GetRenderTexture(ContextConstants.BufferHeightmapTexture);

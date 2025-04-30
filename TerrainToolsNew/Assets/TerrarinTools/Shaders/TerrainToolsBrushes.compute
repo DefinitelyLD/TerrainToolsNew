@@ -17,7 +17,7 @@
 #pragma kernel Tween
 
 #define PI 3.14159265358979323846
-#define PATTERN_UV_REDZONE 4.0
+#define PATTERN_UV_REDZONE 8.0
 
 Texture2D<float> HeightmapMaskTexture;
 
@@ -304,10 +304,11 @@ void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 void Compose(uint3 id : SV_DispatchThreadID)
 {   
     float baseHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
-    float compositiveHeight = HeightmapTexture[id.xy];
+    float compositiveHeight = CompositiveHeightmapTexture.Load(int3(id.x, id.y, 0));
     
     float newHeight = baseHeight + compositiveHeight;
     
+    //newHeight = clamp(newHeight, 0, 0.5);
     OutputHeightmapTexture[id.xy] = newHeight;
 }
 
@@ -319,5 +320,6 @@ void Tween(uint3 id : SV_DispatchThreadID)
     
     float newHeight = lerp(currentHeight, targetHeight, DeltaTime * TweenStrength);
     
+    newHeight = clamp(newHeight, 0, 0.5);
     OutputHeightmapTexture[id.xy] = newHeight;
 }

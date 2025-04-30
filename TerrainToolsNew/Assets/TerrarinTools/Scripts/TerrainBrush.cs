@@ -8,9 +8,6 @@ namespace TerrainTools {
         public abstract BrushType GetBrushType();
 
         public virtual void Prepare(IBrushContext context) {
-            var resourcesOps = new DefaultResourcesOps();
-            resourcesOps.CreateAndResizeDefaultResources(context);
-
             var commandBuffer = context.GetCommandBuffer();
             var brushData = context.GetBrushData();
             var blitMaterial = context.GetBlitMaterial();

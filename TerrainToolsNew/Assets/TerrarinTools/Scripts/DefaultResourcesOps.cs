@@ -121,6 +121,8 @@ namespace TerrainTools {
             //--
             if (context.IsRenderTextureExists(ContextConstants.VirtualTerrainHeightmap) == false) {
                 context.CreateRenderTexture(ContextConstants.VirtualTerrainHeightmap, heightmapSize, heightmapFormat, true);
+
+                context.RegisterHeightmapCompositive(ContextConstants.VirtualTerrainHeightmap);
             }
             var virtualTerrainHeightmap = context.GetRenderTexture(ContextConstants.VirtualTerrainHeightmap);
 

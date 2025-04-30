@@ -93,25 +93,6 @@ namespace TerrainTools {
             }
 
 
-
-
-            var terrain = m_context.GetTerrain();
-            var commandBuffer = m_context.GetCommandBuffer();
-            commandBuffer.Clear();
-
-            var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
-
-            // tweening
-            var tweener = new TerrainToolsTweener();
-            tweener.TweenHeightmapPass(m_context, new TweenData() {
-                deltaTime = m_deltaTime,
-                strength = m_tweenStrength
-            }, unityTerrainHeightmap);
-
-            HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
-            HDRPTerrainToolsInjectionPass.SubmitPass = true;
-
-
             if (m_inputModule.IsMouseLeftClickHold() == false)
                 return;
 
@@ -126,7 +107,7 @@ namespace TerrainTools {
             if (Physics.Raycast(ray, out RaycastHit hit) == false)
                 return;
 
-            //var terrain = m_context.GetTerrain();
+            var terrain = m_context.GetTerrain();
             var heightmapResolution = terrain.terrainData.heightmapResolution;
             var terrainSize = terrain.terrainData.size;
 
@@ -186,7 +167,12 @@ namespace TerrainTools {
 
             var currentMode = m_modes[m_currentModeIndex];
 
+            var commandBuffer = m_context.GetCommandBuffer();
             commandBuffer.Clear();
+
+            var resourcesOps = new DefaultResourcesOps();
+            resourcesOps.CreateAndResizeDefaultResources(m_context);
+
             // recording commands from current brush mode
             currentMode.Prepare(m_context);
 
@@ -200,6 +186,12 @@ namespace TerrainTools {
 
             currentMode.CopyResults(m_context);
             currentMode.Compose(m_context);
+
+            var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
+
+            // tweening
+            var tweener = new TerrainToolsTweener();
+            tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
 
             var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
             m_fenceManager.RegisterFence(fence);
