@@ -16,6 +16,7 @@
 
         MaskHeightmap,
         Compose,
-        Tween
+        Tween,
+        ComputeNormals
     }
 }

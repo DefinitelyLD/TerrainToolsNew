@@ -13,7 +13,11 @@ namespace TerrainTools {
             var hasFencePassed = brushData.hasResourceFencePassed;
 
             var heightmapFormat = terrain.terrainData.heightmapTexture.graphicsFormat;
-            var heightmapSize = new Vector2Int(terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution);
+            var normalmapFormat = terrain.normalmapTexture.graphicsFormat;
+
+            var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
+            var normalmapSize = terrain.normalmapTexture.GetSize();
+
             var actualBrushSize = brushData.actualBrushSize;
 
             // resizing brush mask
@@ -35,10 +39,6 @@ namespace TerrainTools {
 
                 context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
                 brushMaskTexture = context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, brushData.brushSize, GraphicsFormat.R32_SFloat, false);
-
-                // resizing brush mask
-                var brushTexture = context.GetCurrentBrushShape();
-                commandBuffer.Blit(brushTexture, brushMaskTexture, blitMaterial);
             }
             //--
 
@@ -165,10 +165,24 @@ namespace TerrainTools {
                 bufferHeightmapTexture = context.CreateRenderTexture(ContextConstants.BufferHeightmapTexture, heightmapSize, heightmapFormat, true);
             }
             //--
+            if (context.IsRenderTextureExists(ContextConstants.BufferNormalmapTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.BufferNormalmapTexture, normalmapSize, normalmapFormat, true);    
+            }
+
+            var bufferNormalmapTexture = context.GetRenderTexture (ContextConstants.BufferNormalmapTexture);
+
+            if (bufferHeightmapTexture.CheckSize(normalmapSize) == false) {
+                context.DestroyRenderTexture(ContextConstants.BufferNormalmapTexture);
+
+                bufferNormalmapTexture = context.CreateRenderTexture(ContextConstants.BufferNormalmapTexture, normalmapSize, normalmapFormat, true);
+            }
+            //--
 
             if (context.IsDebugMode()) {
                 var debug = context.GetTextureDebug();
 
+                debug.SetTexture("Buffer Normalmap", bufferNormalmapTexture);
+                debug.SetTexture("Unity Normalmap", terrain.normalmapTexture);
                 debug.SetTexture("Brush Mask", brushMaskTexture);
                 debug.SetTexture("Heightmap", heightmapTexture);
                 debug.SetTexture("Brush Heightmap", brushHeightmap);

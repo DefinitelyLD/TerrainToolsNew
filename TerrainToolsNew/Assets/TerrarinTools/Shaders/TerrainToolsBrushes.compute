@@ -15,9 +15,14 @@
 #pragma kernel MaskHeightmap
 #pragma kernel Compose
 #pragma kernel Tween
+#pragma kernel ComputeNormals
 
 #define PI 3.14159265358979323846
 #define PATTERN_UV_REDZONE 8.0
+
+RWTexture2D<float4> NormalmapTexture;
+
+float3 TerrainSize;
 
 Texture2D<float> HeightmapMaskTexture;
 
@@ -286,6 +291,13 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 {
+    uint2 limits;
+    HeightmapTexture.GetDimensions(limits.x, limits.y);
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
     float mask = HeightmapMaskTexture.Load(int3(id.x, id.y, 0));
     float height = HeightmapTexture.Load(int3(id.x, id.y, 0));
     
@@ -299,6 +311,13 @@ void MaskHeightmap(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void Compose(uint3 id : SV_DispatchThreadID)
 {   
+    uint2 limits;
+    HeightmapTexture.GetDimensions(limits.x, limits.y);
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
     float baseHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
     float compositiveHeight = CompositiveHeightmapTexture.Load(int3(id.x, id.y, 0));
     
@@ -311,6 +330,13 @@ void Compose(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void Tween(uint3 id : SV_DispatchThreadID)
 {
+    uint2 limits;
+    HeightmapTexture.GetDimensions(limits.x, limits.y);
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
     float targetHeight = HeightmapTexture.Load(int3(id.x, id.y, 0));
     float currentHeight = TweenStateHeightmap.Load(int3(id.x, id.y, 0));
     
@@ -318,4 +344,29 @@ void Tween(uint3 id : SV_DispatchThreadID)
     
     newHeight = clamp(newHeight, 0, 0.5);
     OutputHeightmapTexture[id.xy] = newHeight;
+}
+
+[numthreads(32, 32,1)]
+void ComputeNormals(uint3 id : SV_DispatchThreadID)
+{
+    uint2 limits;
+    HeightmapTexture.GetDimensions(limits.x, limits.y);
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+
+    int2 p = int2(id.xy);
+
+    float hL = HeightmapTexture.Load(int3(p + int2(-1, 0), 0));
+    float hR = HeightmapTexture.Load(int3(p + int2(1, 0), 0));
+    float hD = HeightmapTexture.Load(int3(p + int2(0, -1), 0));
+    float hU = HeightmapTexture.Load(int3(p + int2(0, 1), 0));
+
+    float dx = (hL - hR) * TerrainSize.x;
+    float dy = 2.0 * TerrainSize.y;
+    float dz = (hD - hU) * TerrainSize.z;
+
+    float3 normal = normalize(float3(dx, dy, dz));
+    NormalmapTexture[p] = float4(normal * 0.5 + 0.5, 1.0); // Convert to [0,1] range
 }

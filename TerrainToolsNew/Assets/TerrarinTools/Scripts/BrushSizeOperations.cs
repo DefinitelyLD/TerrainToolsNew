@@ -10,7 +10,8 @@ namespace TerrainTools {
             const float lengthReference = 6f;
             const float referenceStripCount = 1f;
 
-            float length = (brushSize.x + brushSize.y) * 0.5f;
+            //float length = (brushSize.x + brushSize.y) * 0.5f;
+            float length = brushSize.x;
 
             float heightMultiple = brushHeight / heightReference;
             float lengthMultiple = length / lengthReference;

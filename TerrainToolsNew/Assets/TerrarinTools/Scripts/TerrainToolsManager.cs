@@ -128,6 +128,17 @@ namespace TerrainTools {
 
             m_context.UpdateData(newBrushData, textureDebug);
 
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            terrain.Flush();
+
+            m_stopwatch.Stop();
+
+            TerrainToolsUtils.Log($"Terarin flushing took : {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
             var commandBuffer = m_context.GetCommandBuffer();
             commandBuffer.Clear();
 
@@ -135,8 +146,8 @@ namespace TerrainTools {
             resourcesOps.CreateAndResizeDefaultResources(m_context);
 
             var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
+            var unityTerrainNormalmap = terrain.normalmapTexture;
 
-            // tweening
             m_stopwatch.Reset();
             m_stopwatch.Start();
 
@@ -148,8 +159,13 @@ namespace TerrainTools {
             var masker = new TerrainToolsMasker();
             masker.MaskHeightmapPass(m_context);
 
+            // tweening
             var tweener = new TerrainToolsTweener();
             tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
+
+            // computing normals
+            var normalComputer = new TerrainToolsNormalsComputer();
+            normalComputer.ComputeNormalsPass(m_context, unityTerrainNormalmap);
 
             m_stopwatch.Stop();
 
@@ -215,7 +231,7 @@ namespace TerrainTools {
             currentMode.CopyResults(m_context);
 
             m_stopwatch.Stop();
-            TerrainToolsUtils.Log($"Brush gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
+            TerrainToolsUtils.Log($"Brush editing gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
         }
@@ -228,18 +244,6 @@ namespace TerrainTools {
             m_fenceManager.RegisterFence(fence);
 
             Graphics.ExecuteCommandBuffer(commandBuffer);
-
-            if (m_inputModule.IsMouseLeftClickUp()) {
-                //terrain.terrainData.SyncHeightmap();
-            }
-            var terrain = m_context.GetTerrain();
-            var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
-
-            terrain.terrainData.DirtyHeightmapRegion(new RectInt() {
-                width = heightmapSize.x,
-                height = heightmapSize.y
-
-            }, TerrainHeightmapSyncControl.HeightOnly);
 
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands immediate execution took: {m_stopwatch.ElapsedMilliseconds} ms" +

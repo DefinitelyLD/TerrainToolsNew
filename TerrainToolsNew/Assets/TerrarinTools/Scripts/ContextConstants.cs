@@ -13,5 +13,7 @@
         public const string BufferHeightmapTexture = "BufferHeightmapTexture";
 
         public const string OutputHeightmapTexture = "OutputHeightmapTexture";
+
+        public const string BufferNormalmapTexture = "BufferNormalmapTexture";
     }
 }
