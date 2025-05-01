@@ -237,6 +237,18 @@ namespace TerrainTools {
 
             Graphics.ExecuteCommandBuffer(commandBuffer);
 
+            if (m_inputModule.IsMouseLeftClickUp()) {
+                var terrain = m_context.GetTerrain();
+                var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
+
+                terrain.terrainData.DirtyHeightmapRegion(new RectInt() {
+                    width = heightmapSize.x,
+                    height = heightmapSize.y
+
+                }, TerrainHeightmapSyncControl.HeightOnly);
+                //terrain.terrainData.SyncHeightmap();
+            }
+
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands immediate execution took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
@@ -248,6 +260,7 @@ namespace TerrainTools {
         public TerrainToolsManager(Terrain terrain, TerrainToolsResources resources) {
 
             m_resources = resources;
+            TerrainToolsUtils.LoggingEnabled = m_resources.DebugMode;
 
             m_stopwatch = new();
 
@@ -293,7 +306,6 @@ namespace TerrainTools {
             }
 
             m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE);
-            TerrainToolsUtils.LoggingEnabled = m_resources.DebugMode;
 
             var terrainSettingsOps = new TerrainSettingsOperations();
             terrainSettingsOps.SetTerrainSettings(terrain, m_resources);

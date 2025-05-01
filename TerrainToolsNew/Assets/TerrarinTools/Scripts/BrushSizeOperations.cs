@@ -6,20 +6,24 @@ namespace TerrainTools {
         public static readonly Vector3 BrushSizeToWorldSize = new Vector3(0.1f, 0.1f, 0.1f);
 
         public readonly int CalculateStripCount(Vector2Int brushSize, int brushHeight) {
-            const int heightReference = 2;
-            const int lengthReference = 6;
-
-            const int referenceStripCount = 1;
+            const float heightReference = 2f;
+            const float lengthReference = 6f;
+            const float referenceStripCount = 1f;
 
             float length = (brushSize.x + brushSize.y) * 0.5f;
 
             float heightMultiple = brushHeight / heightReference;
             float lengthMultiple = length / lengthReference;
 
+            // Prevent division by zero
+            if (Mathf.Approximately(heightMultiple, 0f))
+                return 0;
+
             float stripCount = (referenceStripCount / heightMultiple) * lengthMultiple;
 
-            return Convert.ToInt32(stripCount);
+            return Mathf.Max(1, Mathf.RoundToInt(stripCount)); // Ensure minimum of 1
         }
+
 
         public readonly Vector2Int BrushPointerPositionToTexelPosition(Vector3 terrainLocalPointerPosition, Vector2Int actualBrushSize, Vector3 terrainSize, int textureResolution) {
             return new Vector2Int(
