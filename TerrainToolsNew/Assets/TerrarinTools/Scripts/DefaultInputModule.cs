@@ -8,15 +8,15 @@ namespace TerrainTools {
         }
 
         public override bool IsMouseLeftClickDown() {
-            return Input.GetKeyDown(KeyCode.Space);
+            return Input.GetKeyDown(KeyCode.Mouse0);
         }
 
         public override bool IsMouseLeftClickHold() {
-            return Input.GetKey(KeyCode.Space);
+            return Input.GetKey(KeyCode.Mouse0);
         }
 
         public override bool IsMouseLeftClickUp() {
-            return Input.GetKeyUp(KeyCode.Space);
+            return Input.GetKeyUp(KeyCode.Mouse0);
         }
         public override bool IsMouseRightClickDown() {
             return Input.GetKeyDown(KeyCode.Mouse1);

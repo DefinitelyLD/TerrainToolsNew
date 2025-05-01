@@ -1,6 +1,6 @@
 ﻿using System;
 using UnityEngine;
-using static UnityEngine.UI.DefaultControls;
+using UnityEngine.Rendering;
 
 namespace TerrainTools {
     [TerrainBrush]
@@ -13,45 +13,24 @@ namespace TerrainTools {
             return BrushType.Heightmap;
         }
 
-        public override void OnBrushDown(IBrushContext context) {
+        public override void Prepare(IBrushContext context) {
+            base.Prepare(context);
 
             var commandBuffer = context.GetCommandBuffer();
-            var computeShader = context.GetCompute();
-
-            var brushHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
-            var outputBrushHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
-            var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-            var terrainHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
             var brushData = context.GetBrushData();
-
             var terrain = context.GetTerrain();
-            var heightmapSize = new Vector2Int(terrainHeightmapTexture.width, terrainHeightmapTexture.height);
+            var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
             var heightmapResolution = new Vector2Int(terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution);
             var terrainHeightmapFormat = terrain.terrainData.heightmapTexture.graphicsFormat;
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "TerrainHeightmapTexture", terrainHeightmapTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushHeightmapTexture", brushHeightmapTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushMaskTexture", brushShapeTexture);
-
-            commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
-            commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
-            commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
-            commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);
-            commandBuffer.SetComputeIntParam(computeShader, "BrushStripCount", brushData.stripCount);
-
-            commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
-            commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);
-            commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.actualBrushSize.x, brushData.actualBrushSize.y);
-
-
-            if(context.IsRenderTextureExists(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE) == false) {
+            if (context.IsRenderTextureExists(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE) == false) {
                 context.CreateRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE, brushData.actualBrushSize, terrainHeightmapFormat, true);
             }
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
 
-            if(patternBrushHeightmapResultTexture.CheckSize(brushData.actualBrushSize) == false) {
+            if (patternBrushHeightmapResultTexture.CheckSize(brushData.actualBrushSize) == false) {
                 if (!brushData.hasResourceFencePassed) {
                     TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
                     return;
@@ -77,15 +56,61 @@ namespace TerrainTools {
                 patternTexture = context.CreateRenderTexture(PATTERN_TEXTURE, heightmapResolution, terrainHeightmapFormat, false);
             }
 
+            if (context.IsHeightmapCompositiveExists(PATTERN_TEXTURE) == false) {
+                context.RegisterHeightmapCompositive(PATTERN_TEXTURE);
+            }
+
+            var slicingOps = new SlicingOperations();
+            var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
+            var slicedBrushSize = slicingOps.SliceBrushSize(brushData.brushPosition, heightmapSize, brushData.actualBrushSize);
+            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.brushPosition, heightmapSize);
+            slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
+
+            commandBuffer.CopyTexture(
+                patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
+                patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
+        }
+
+        public override void OnBrushDown(IBrushContext context) {
+
+            var commandBuffer = context.GetCommandBuffer();
+            var computeShader = context.GetCompute();
+
+            var brushHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
+            var outputBrushHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainBrushHeightmapResultTexture);
+            var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+            var terrainHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
+
+            var patternBrushHeightmapResultTexture = context.GetRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
+            var patternTexture = context.GetRenderTexture(PATTERN_TEXTURE);
+
+            var brushData = context.GetBrushData();
+
+            var terrain = context.GetTerrain();
+            var heightmapSize = new Vector2Int(terrainHeightmapTexture.width, terrainHeightmapTexture.height);
+            var heightmapResolution = new Vector2Int(terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution);
+            var terrainHeightmapFormat = terrain.terrainData.heightmapTexture.graphicsFormat;
+
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "TerrainHeightmapTexture", terrainHeightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushHeightmapTexture", brushHeightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushMaskTexture", brushShapeTexture);
+
+            commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
+            commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
+            commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
+            commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);
+            commandBuffer.SetComputeIntParam(computeShader, "BrushStripCount", brushData.stripCount);
+
+            commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
+            commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);
+            commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.actualBrushSize.x, brushData.actualBrushSize.y);
+
+
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "BrushMaskTexture", brushShapeTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Compose, "BrushHeightmapTexture", brushHeightmapTexture);
-
-            if(context.IsHeightmapCompositiveExists(PATTERN_TEXTURE) == false) {
-                context.RegisterHeightmapCompositive(PATTERN_TEXTURE);
-            }
         }
 
         public override void OnBrushUp(IBrushContext context) {

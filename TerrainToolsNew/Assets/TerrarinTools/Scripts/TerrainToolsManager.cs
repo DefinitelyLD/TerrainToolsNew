@@ -57,7 +57,6 @@ namespace TerrainTools {
         private readonly Stopwatch m_stopwatch;
 
         private readonly FenceManager m_fenceManager;
-        private bool m_submitted;
 
         public void UpdateData(TerrainToolsManagerUpdateData data) {
 
@@ -73,7 +72,7 @@ namespace TerrainTools {
             m_currentModeIndex = Array.FindIndex(m_modes, mode => mode.GetType() == data.brushType);
 
             m_brushFallback = data.brushFallback;
-            m_deltaTime = m_resources.HalfTerrainToolsFPS? data.deltaTime * 2f : data.deltaTime;
+            m_deltaTime = data.deltaTime;
         }
 
         public void Tick() {
@@ -84,13 +83,6 @@ namespace TerrainTools {
 
             var eventSystem = EventSystem.current;
             Debug.Assert(eventSystem != null, "No event system found in the scene.");
-
-            if (m_submitted) {
-                if (m_resources.HalfTerrainToolsFPS) {
-                    m_submitted = false;
-                    return;
-                }
-            }
 
             var hasFencePassed = m_fenceManager.IsFencePassed();
 
@@ -238,23 +230,21 @@ namespace TerrainTools {
             Graphics.ExecuteCommandBuffer(commandBuffer);
 
             if (m_inputModule.IsMouseLeftClickUp()) {
-                var terrain = m_context.GetTerrain();
-                var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
-
-                terrain.terrainData.DirtyHeightmapRegion(new RectInt() {
-                    width = heightmapSize.x,
-                    height = heightmapSize.y
-
-                }, TerrainHeightmapSyncControl.HeightOnly);
                 //terrain.terrainData.SyncHeightmap();
             }
+            var terrain = m_context.GetTerrain();
+            var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
+
+            terrain.terrainData.DirtyHeightmapRegion(new RectInt() {
+                width = heightmapSize.x,
+                height = heightmapSize.y
+
+            }, TerrainHeightmapSyncControl.HeightOnly);
 
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands immediate execution took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
-
-            m_submitted = true;
         }
 
         public TerrainToolsManager(Terrain terrain, TerrainToolsResources resources) {

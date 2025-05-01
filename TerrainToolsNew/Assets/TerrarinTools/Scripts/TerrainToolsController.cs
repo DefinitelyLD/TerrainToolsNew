@@ -19,7 +19,7 @@ namespace TerrainTools {
         [SerializeField]
         private BrushMode BrushType = BrushMode.Raise;
         [SerializeField]
-        private float TweenStrength = 1;
+        private float TweenStrength = 4;
 
         [SerializeField]
         private float BrushFall = 1;
