@@ -20,6 +20,7 @@ namespace TerrainTools {
             CommandBuffer = null;
 
             TerrainToolsUtils.Log("Command Buffer Submitted from Custom Pass Injection.");
+            
         }
     }
 }

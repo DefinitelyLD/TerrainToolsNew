@@ -29,7 +29,7 @@ namespace TerrainTools {
         public bool IsFencePassed() {
             var passed = IsFencePassedNonBlock();
 
-            if (passed == false) {
+/*            if (passed == false) {
                 m_stopwach.Reset();
                 m_stopwach.Start();
                 while (!passed) {
@@ -39,8 +39,8 @@ namespace TerrainTools {
                 Debug.LogWarning($"FenceManager: {m_stopwach.ElapsedMilliseconds} ms " +
                     $"| {(m_stopwach.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} microseconds " +
                     $"| {(m_stopwach.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns to pass the fence. CPU was blocked.");
-            }
-            return true;
+            }*/
+            return passed;
         }
 
         private bool IsFencePassedNonBlock() {
@@ -59,7 +59,7 @@ namespace TerrainTools {
             return result;
         }
 
-        public FenceManager(int maxFences = 2) {
+        public FenceManager(int maxFences = 4) {
             m_fences = new (GraphicsFence fence, bool valid)[maxFences];
             m_stopwach = new();
         }
