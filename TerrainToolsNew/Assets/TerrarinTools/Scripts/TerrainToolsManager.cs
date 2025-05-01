@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
 
-    public struct TerrainToolsManagerMutateData {
+    public struct TerrainToolsManagerUpdateData {
         public float brushStrength;
         public float brushAngle;
         public Vector2Int brushSize;
@@ -59,7 +59,7 @@ namespace TerrainTools {
         private readonly FenceManager m_fenceManager;
         private bool m_submitted;
 
-        public void Mutate(TerrainToolsManagerMutateData data) {
+        public void UpdateData(TerrainToolsManagerUpdateData data) {
 
             m_brushAngle = data.brushAngle;
             m_brushStrength = data.brushStrength;
@@ -92,49 +92,20 @@ namespace TerrainTools {
                 }
             }
 
-
-            if (m_inputModule.IsMouseLeftClickHold() == false)
-                return;
-
-            if (eventSystem.IsPointerOverGameObject())
-                return;
-
-            var realPointerPosition = m_inputModule.GetMousePosition();
-            m_pointerPosition = Vector2.Lerp(m_pointerPosition, realPointerPosition, m_brushFallback);
-            m_pointerPosition = realPointerPosition;
-
-            var ray = camera.ScreenPointToRay(m_pointerPosition);
-            if (Physics.Raycast(ray, out RaycastHit hit) == false)
-                return;
+            var hasFencePassed = m_fenceManager.IsFencePassed();
 
             var terrain = m_context.GetTerrain();
             var heightmapResolution = terrain.terrainData.heightmapResolution;
             var terrainSize = terrain.terrainData.size;
-
-            var heightmapSize = new Vector2Int(heightmapResolution, heightmapResolution);
-
-            if (hit.transform.gameObject != terrain.gameObject)
-                return;
-
-            m_stopwatch.Reset();
-            m_stopwatch.Start();
-
-            var hasFencePassed = m_fenceManager.IsFencePassed();
-
-            var hitPoint = new Vector3(hit.point.x, terrain.transform.position.y, hit.point.z);
-            var pointerTerrainPos = hitPoint - terrain.transform.position;
 
             var brushSizeOps = new BrushSizeOperations();
             var texelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, heightmapResolution);
             var gpuBrushHeight = brushSizeOps.BrushHeightToGPUHeightValue(m_brushHeight, terrainSize);
 
             var actualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(texelBrushSize);
-
-            var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
             var brushStripeCount = brushSizeOps.CalculateStripCount(m_brushSize, m_brushHeight);
 
             var newBrushData = new BrushData();
-            newBrushData.brushPosition = brushPosition;
             newBrushData.brushSize = texelBrushSize;
             newBrushData.brushHeight = gpuBrushHeight;
             newBrushData.angle = m_brushAngle;
@@ -165,14 +136,70 @@ namespace TerrainTools {
 
             m_context.UpdateData(newBrushData, textureDebug);
 
-            var currentMode = m_modes[m_currentModeIndex];
-
             var commandBuffer = m_context.GetCommandBuffer();
-            commandBuffer.Clear();
 
             var resourcesOps = new DefaultResourcesOps();
             resourcesOps.CreateAndResizeDefaultResources(m_context);
 
+            var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
+
+            // tweening
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            var tweener = new TerrainToolsTweener();
+            tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
+
+            m_stopwatch.Stop();
+
+            TerrainToolsUtils.Log($"Tweening gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+            //-----------------------------------
+
+            if (m_inputModule.IsMouseLeftClickHold() == false) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
+
+            if (eventSystem.IsPointerOverGameObject()) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
+
+            var realPointerPosition = m_inputModule.GetMousePosition();
+            m_pointerPosition = Vector2.Lerp(m_pointerPosition, realPointerPosition, m_brushFallback);
+            m_pointerPosition = realPointerPosition;
+
+            var ray = camera.ScreenPointToRay(m_pointerPosition);
+            if (Physics.Raycast(ray, out RaycastHit hit) == false) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
+
+            if (hit.transform.gameObject != terrain.gameObject) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
+
+            var hitPoint = new Vector3(hit.point.x, terrain.transform.position.y, hit.point.z);
+            var pointerTerrainPos = hitPoint - terrain.transform.position;
+
+            var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
+
+            newBrushData.brushPosition = brushPosition;
+            m_context.UpdateData(newBrushData, textureDebug);
+
+            RecordBrushCommands(commandBuffer);
+            SubmitCommandBuffer(commandBuffer);
+        }
+
+        private void RecordBrushCommands(CommandBuffer commandBuffer) {
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            var currentMode = m_modes[m_currentModeIndex];
             // recording commands from current brush mode
             currentMode.Prepare(m_context);
 
@@ -187,26 +214,22 @@ namespace TerrainTools {
             currentMode.CopyResults(m_context);
             currentMode.Compose(m_context);
 
-            var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
-
-            // tweening
-            var tweener = new TerrainToolsTweener();
-            tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
-
-            var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
-            m_fenceManager.RegisterFence(fence);
-            // -- --
-
-            // sumbitting for execution
-            HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
-            HDRPTerrainToolsInjectionPass.SubmitPass = true;
-
-            m_submitted = true;
-
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+        }
+
+        private void SubmitCommandBuffer(CommandBuffer commandBuffer) {
+            var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
+            m_fenceManager.RegisterFence(fence);
+
+            HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
+            HDRPTerrainToolsInjectionPass.SubmitPass = true;
+
+            commandBuffer.Clear();
+
+            m_submitted = true;
         }
 
         public TerrainToolsManager(Terrain terrain, TerrainToolsResources resources) {

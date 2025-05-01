@@ -45,7 +45,7 @@ namespace TerrainTools {
         private void Update() {
             if(m_manager != null) {
 
-                m_manager.Mutate(new TerrainToolsManagerMutateData() {
+                m_manager.UpdateData(new TerrainToolsManagerUpdateData() {
                     brushAngle = BrushAngle,
                     brushSize = BrushSize,
                     brushStrength = BrushStrength,
