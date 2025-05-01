@@ -66,18 +66,6 @@ namespace TerrainTools {
                     virtualTerrainHeightmap, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
             }
         }
-        public virtual void Compose(IBrushContext context) {
-            if (GetBrushType() == BrushType.Heightmap) {
-                // composing
-                var composer = new TerrainToolsComposer();
-                composer.ComposeHeightmapPass(context);
-
-                // masking
-                var masker = new TerrainToolsMasker();
-                masker.MaskHeightmapPass(context);
-            }
-        }
-
 
         public virtual void RenderHologram(IBrushContext context) {
 

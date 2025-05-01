@@ -137,6 +137,7 @@ namespace TerrainTools {
             m_context.UpdateData(newBrushData, textureDebug);
 
             var commandBuffer = m_context.GetCommandBuffer();
+            commandBuffer.Clear();
 
             var resourcesOps = new DefaultResourcesOps();
             resourcesOps.CreateAndResizeDefaultResources(m_context);
@@ -147,12 +148,20 @@ namespace TerrainTools {
             m_stopwatch.Reset();
             m_stopwatch.Start();
 
+            // composing
+            var composer = new TerrainToolsComposer();
+            composer.ComposeHeightmapPass(m_context);
+
+            // masking
+            var masker = new TerrainToolsMasker();
+            masker.MaskHeightmapPass(m_context);
+
             var tweener = new TerrainToolsTweener();
             tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
 
             m_stopwatch.Stop();
 
-            TerrainToolsUtils.Log($"Tweening gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
+            TerrainToolsUtils.Log($"Post process gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
@@ -212,7 +221,6 @@ namespace TerrainTools {
                 currentMode.OnBrushUp(m_context);
 
             currentMode.CopyResults(m_context);
-            currentMode.Compose(m_context);
 
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
@@ -221,13 +229,18 @@ namespace TerrainTools {
         }
 
         private void SubmitCommandBuffer(CommandBuffer commandBuffer) {
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
             var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
             m_fenceManager.RegisterFence(fence);
 
-            HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
-            HDRPTerrainToolsInjectionPass.SubmitPass = true;
+            Graphics.ExecuteCommandBuffer(commandBuffer);
 
-            commandBuffer.Clear();
+            m_stopwatch.Stop();
+            TerrainToolsUtils.Log($"Brush gpu commands immediate execution took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
             m_submitted = true;
         }

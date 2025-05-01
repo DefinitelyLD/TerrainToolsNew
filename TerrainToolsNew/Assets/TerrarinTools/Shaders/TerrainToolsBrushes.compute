@@ -210,9 +210,9 @@ void FlatBrush(uint3 id : SV_DispatchThreadID)
     float mask = GetBrushMaskValue(id);
     
     currentHeight += BrushStrength * DeltaTime * mask;
-    currentHeight = clamp(currentHeight, 0, 0.5);
     currentHeight = clamp(currentHeight, 0, BrushHeight);
     
+    currentHeight = clamp(currentHeight, 0, 0.5);
     OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
 
@@ -227,11 +227,7 @@ void EraseBrush(uint3 id : SV_DispatchThreadID)
     float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
     float mask = GetBrushMaskValue(id);
     
-    if (mask > 0)
-    {
-        currentHeight = 0;
-    }
-    
+    currentHeight = mask > 0? 0 : currentHeight;
     OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
 

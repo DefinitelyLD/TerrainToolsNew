@@ -11,6 +11,8 @@ namespace TerrainTools {
         private readonly Stopwatch m_stopwach;
 
         public void RegisterFence(GraphicsFence fence) {
+            return;
+
             m_lastFence++;
 
             if (m_lastFence >= m_fences.Length) {
@@ -27,6 +29,8 @@ namespace TerrainTools {
         }
 
         public bool IsFencePassed() {
+            return true;
+
             var passed = IsFencePassedNonBlock();
 
 /*            if (passed == false) {
