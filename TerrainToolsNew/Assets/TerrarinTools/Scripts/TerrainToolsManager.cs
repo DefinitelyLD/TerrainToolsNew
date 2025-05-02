@@ -3,10 +3,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
@@ -113,31 +111,12 @@ namespace TerrainTools {
                 strength = m_tweenStrength,
             };
 
-            TerrainToolsTextureDebug textureDebug = null;
             if (m_context.IsDebugMode()) {
-                var debug = GameObject.Find("[Terrain Tools Texture Debug]");
-                if (debug == null) {
-                    debug = new GameObject("[Terrain Tools Texture Debug]");
-                    textureDebug = debug.AddComponent<TerrainToolsTextureDebug>();
-                } else {
-                    textureDebug = debug.GetComponent<TerrainToolsTextureDebug>();
-                }
-
-                textureDebug.Clear();
+                var debug = m_context.GetDebugView();
+                debug.Clear();
             }
 
-            m_context.UpdateData(newBrushData, textureDebug);
-
-            m_stopwatch.Reset();
-            m_stopwatch.Start();
-
-            terrain.Flush();
-
-            m_stopwatch.Stop();
-
-            TerrainToolsUtils.Log($"Terarin flushing took : {m_stopwatch.ElapsedMilliseconds} ms" +
-                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
-                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+            m_context.UpdateData(newBrushData);
 
             var commandBuffer = m_context.GetCommandBuffer();
             commandBuffer.Clear();
@@ -173,21 +152,22 @@ namespace TerrainTools {
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            terrain.Flush();
+
+            m_stopwatch.Stop();
+
+            TerrainToolsUtils.Log($"Terarin flushing took : {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
             //-----------------------------------
-
-            if (m_inputModule.IsMouseLeftClickHold() == false) {
-                SubmitCommandBuffer(commandBuffer);
-                return;
-            }
-
-            if (eventSystem.IsPointerOverGameObject()) {
-                SubmitCommandBuffer(commandBuffer);
-                return;
-            }
 
             var realPointerPosition = m_inputModule.GetMousePosition();
             m_pointerPosition = Vector2.Lerp(m_pointerPosition, realPointerPosition, m_brushFallback);
-            m_pointerPosition = realPointerPosition;
+            //m_pointerPosition = realPointerPosition;
 
             var ray = camera.ScreenPointToRay(m_pointerPosition);
             if (Physics.Raycast(ray, out RaycastHit hit) == false) {
@@ -206,8 +186,28 @@ namespace TerrainTools {
             var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
 
             newBrushData.brushPosition = brushPosition;
-            m_context.UpdateData(newBrushData, textureDebug);
+            m_context.UpdateData(newBrushData);
 
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            m_modes[m_currentModeIndex].RenderHologram(m_context);
+
+            m_stopwatch.Stop();
+
+            TerrainToolsUtils.Log($"Hologram drawing took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+            if (m_inputModule.IsMouseLeftClickHold() == false) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
+
+            if (eventSystem.IsPointerOverGameObject()) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
             RecordBrushCommands(commandBuffer);
             SubmitCommandBuffer(commandBuffer);
         }
@@ -237,6 +237,8 @@ namespace TerrainTools {
         }
 
         private void SubmitCommandBuffer(CommandBuffer commandBuffer) {
+            commandBuffer.CopyTexture(m_context.GetTerrain().terrainData.heightmapTexture, m_context.GetTexture2D(ContextConstants.APIGetHeightTexture));
+
             m_stopwatch.Reset();
             m_stopwatch.Start();
 
@@ -299,12 +301,34 @@ namespace TerrainTools {
                 throw;
             }
 
-            m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE);
+            TerrainToolsDebugView debugView = null;
+            if (m_resources.DebugMode) {
+                var debug = GameObject.Find("[Terrain Tools Texture Debug]");
+                if (debug == null) {
+                    debug = new GameObject("[Terrain Tools Texture Debug]");
+                    debugView = debug.AddComponent<TerrainToolsDebugView>();
+                } else {
+                    debugView = debug.GetComponent<TerrainToolsDebugView>();
+                }
+
+                debugView.Clear();
+            }
+
+            m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE, debugView);
 
             var terrainSettingsOps = new TerrainSettingsOperations();
             terrainSettingsOps.SetTerrainSettings(terrain, m_resources);
 
             m_fenceManager = new();
+
+            var commandBuffer = m_context.GetCommandBuffer();
+
+            commandBuffer.SetRenderTarget(terrain.terrainData.heightmapTexture);
+            commandBuffer.ClearRenderTarget(false, true, Color.black);
+
+            Graphics.ExecuteCommandBuffer(commandBuffer);
+
+            terrain.terrainData.DirtyHeightmapRegion(new RectInt(0, 0, terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution), TerrainHeightmapSyncControl.HeightAndLod);
         }
 
         protected virtual void Dispose(bool disposing) {

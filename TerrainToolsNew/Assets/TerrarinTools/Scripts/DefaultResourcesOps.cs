@@ -1,10 +1,18 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
     public struct DefaultResourcesOps {
+        private const string HOLOGRAM_MESH_VERTICES_BUFFER = "HologramMeshVerticesBuffer";
+        private const string HOLOGRAM_MESH_INDICIES_BUFFER = "HologramMeshIndicesBuffer";
+        private const string HOLOGRAM_MESH_UVS_BUFFER = "HologramMeshUVsBuffer";
+
         public readonly void CreateAndResizeDefaultResources(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
+            var computeShader = context.GetCompute();
 
             var terrain = context.GetTerrain(); 
             var brushData = context.GetBrushData();
@@ -18,7 +26,79 @@ namespace TerrainTools {
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
             var normalmapSize = terrain.normalmapTexture.GetSize();
 
+            var terrainSize = terrain.terrainData.size;
+
             var actualBrushSize = brushData.actualBrushSize;
+
+            var hologramMeshGridCellCount = new Vector2Int(heightmapSize.x + 1, heightmapSize.y + 1);
+
+            int hologramVerticesCount = (hologramMeshGridCellCount.x + 1) * (hologramMeshGridCellCount.y + 1);
+            int hologramIndicesCount = hologramMeshGridCellCount.x * hologramMeshGridCellCount.y * 6;
+
+            if (context.IsComputeBufferExists(HOLOGRAM_MESH_VERTICES_BUFFER)) {
+                Debug.Assert(context.IsComputeBufferExists(HOLOGRAM_MESH_UVS_BUFFER));
+                Debug.Assert(context.IsComputeBufferExists(HOLOGRAM_MESH_INDICIES_BUFFER));
+
+                // creating hologram mesh
+                if (context.IsMeshsExists(ContextConstants.HologramMesh) == false) {
+                    var timer = new Stopwatch();
+
+                    timer.Start();
+
+                    var indices = new int[hologramIndicesCount];
+                    var uvs = new Vector2[hologramVerticesCount];
+                    var vertices = new Vector3[hologramVerticesCount];
+
+                    var rawVerticesBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_VERTICES_BUFFER);
+                    var rawIndicesBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_INDICIES_BUFFER);
+                    var rawUVsBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_UVS_BUFFER);
+
+                    rawIndicesBuffer.GetData(indices);
+                    rawUVsBuffer.GetData(uvs);
+                    rawVerticesBuffer.GetData(vertices);
+
+                    context.CreateMesh(ContextConstants.HologramMesh, vertices, indices, uvs, true);
+
+                    timer.Stop();
+                    TerrainToolsUtils.Log($"Time took for CPU hologram mesh generation:  {timer.ElapsedMilliseconds} ms" +
+                        $" | {(timer.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                        $" | {(timer.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+                }
+
+            }
+
+            if (context.IsComputeBufferExists(HOLOGRAM_MESH_VERTICES_BUFFER) == false) {
+
+                context.CreateComputeBuffer(HOLOGRAM_MESH_VERTICES_BUFFER, hologramVerticesCount, Marshal.SizeOf<Vector3>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            }
+            var hologramVerticesBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_VERTICES_BUFFER);
+            //--
+
+            if (context.IsComputeBufferExists(HOLOGRAM_MESH_INDICIES_BUFFER) == false) {
+
+                context.CreateComputeBuffer(HOLOGRAM_MESH_INDICIES_BUFFER, hologramIndicesCount, Marshal.SizeOf<int>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            }
+            var hologramIndicesBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_INDICIES_BUFFER);
+            //--
+            if (context.IsComputeBufferExists(HOLOGRAM_MESH_UVS_BUFFER) == false) {
+
+                context.CreateComputeBuffer(HOLOGRAM_MESH_UVS_BUFFER, hologramVerticesCount, Marshal.SizeOf<Vector2>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            }
+            var hologramUvsBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_UVS_BUFFER);
+            //--
+            if(context.IsTexture2DExists(ContextConstants.APIGetHeightTexture) == false) {
+                context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
+            }
+
+            var apiGetHeightTexture = context.GetTexture2D(ContextConstants.APIGetHeightTexture);
+
+            if(apiGetHeightTexture.CheckSize(heightmapSize) == false) {
+                context.DestroyTexture2D(ContextConstants.APIGetHeightTexture);
+
+                apiGetHeightTexture = context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
+            }
+            //--
 
             // resizing brush mask
             if (context.IsRenderTextureExists(ContextConstants.TerrainBrushMaskTexture) == false) {
@@ -178,8 +258,35 @@ namespace TerrainTools {
             }
             //--
 
+
+            if (context.IsMeshsExists(ContextConstants.HologramMesh) == false) {
+                var cellSize = terrainSize.x / heightmapSize.x;
+
+                commandBuffer.SetComputeFloatParams(computeShader, "GridMeshWorldPosition", 0, 0);
+                commandBuffer.SetComputeFloatParams(computeShader, "HeightmapTexelPosition", 0, 0);
+                commandBuffer.SetComputeIntParams(computeShader, "GridCellCount", hologramMeshGridCellCount.x, hologramMeshGridCellCount.y);
+                commandBuffer.SetComputeFloatParams(computeShader, "GridCellSize", cellSize, cellSize);
+                commandBuffer.SetComputeFloatParams(computeShader, "TerrainSize", terrainSize.x, terrainSize.y, terrainSize.z);
+
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "HeightmapTexture", virtualTerrainHeightmap);
+
+                commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshVertices", hologramVerticesBuffer);
+                commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshIndices", hologramIndicesBuffer);
+                commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshUVs", hologramUvsBuffer);
+
+                var dispatchSize = context.GetDispatchSize(heightmapSize);
+                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TessellateGridMesh, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+            }
+            //--
+
             if (context.IsDebugMode()) {
-                var debug = context.GetTextureDebug();
+                var debug = context.GetDebugView();
+
+                if (context.IsMeshsExists(ContextConstants.HologramMesh)) {
+                    debug.SetMesh("Hologram Mesh", context.GetMesh(ContextConstants.HologramMesh));
+                }
+
+                debug.SetTexture("API Get Height", apiGetHeightTexture);
 
                 debug.SetTexture("Buffer Normalmap", bufferNormalmapTexture);
                 debug.SetTexture("Unity Normalmap", terrain.normalmapTexture);

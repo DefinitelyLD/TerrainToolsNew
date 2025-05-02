@@ -22,7 +22,7 @@ namespace TerrainTools {
         private float TweenStrength = 4;
 
         [SerializeField]
-        private float BrushFall = 1;
+        private float BrushFall = 0.2f;
 
         [Header("References:")]
         [Tooltip("The terrain on which to work.")]

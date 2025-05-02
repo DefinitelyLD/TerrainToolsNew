@@ -22,14 +22,15 @@ namespace TerrainTools {
         private readonly Dictionary<string, Texture2D> m_textures;
         private readonly Dictionary<string, GraphicsTexture> m_graphicsTexture;
         private readonly Dictionary<string, Mesh> m_meshes;
+        private readonly Dictionary<string, ComputeBuffer> m_buffers;
 
         private readonly List<string> m_heightmapCompositives;
 
         public readonly int THREAD_GROUP_SIZE;
 
-        private TerrainToolsTextureDebug m_debug;
+        private readonly TerrainToolsDebugView m_debug;
 
-        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int threadGroupSize) {
+        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int threadGroupSize, TerrainToolsDebugView debugView) {
             m_terrain = terrain;
 
             m_commandBuffer = new CommandBuffer();
@@ -39,14 +40,15 @@ namespace TerrainTools {
             m_renderTextures = new();
             m_graphicsTexture = new();
             m_meshes = new();
+            m_buffers = new();
             THREAD_GROUP_SIZE = threadGroupSize;
 
             m_heightmapCompositives = new();
+            m_debug = debugView;
         }
 
-        public void UpdateData(BrushData brushData, TerrainToolsTextureDebug debug) {
+        public void UpdateData(BrushData brushData) {
             m_brushData = brushData;
-            m_debug = debug;
         }
 
         public bool IsHeightmapCompositiveExists(string name) {
@@ -108,6 +110,17 @@ namespace TerrainTools {
                         }
                     }
                     m_graphicsTexture.Clear();
+
+                    foreach(var buffer in m_buffers) {
+                        if(buffer.Value != null) {
+                            buffer.Value.Dispose();
+                        }
+                    }
+                    m_buffers.Clear();
+
+                    if (m_debug != null) {
+                        GameObject.Destroy(m_debug.gameObject);
+                    }
 
                 }
 
@@ -196,7 +209,7 @@ namespace TerrainTools {
 
         public Texture2D GetTexture2D(string name) {
             Debug.Assert(name != null && name != string.Empty);
-            Debug.Assert(m_graphicsTexture.ContainsKey(name), $"Texture2D with name {name} does not exist");
+            Debug.Assert(m_textures.ContainsKey(name), $"Texture2D with name {name} does not exist");
 
             return m_textures[name];
         }
@@ -337,7 +350,7 @@ namespace TerrainTools {
             return m_resources.TerrainMask;
         }
 
-        public TerrainToolsTextureDebug GetTextureDebug() {
+        public TerrainToolsDebugView GetDebugView() {
             Debug.Assert(m_resources.DebugMode, "Obtaining Texture Debug Interface while Debug mode is not enabled.");
 
             return m_debug;
@@ -350,6 +363,43 @@ namespace TerrainTools {
             }
 
             return compositives;
+        }
+
+        public Material GetHologramMaterial() {
+            return m_resources.HologramMaterial;
+        }
+
+        public bool IsComputeBufferExists(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+
+            return m_buffers.ContainsKey(name);
+        }
+
+        public ComputeBuffer CreateComputeBuffer(string name, int count, int stride, ComputeBufferType type, ComputeBufferMode usage) {
+            Debug.Assert(name != null && name != string.Empty);
+            Debug.Assert(IsComputeBufferExists(name) == false);
+
+            var buffer = new ComputeBuffer(count, stride, type, usage);
+            m_buffers.Add(name, buffer);
+
+            return buffer;
+        }
+
+        public void DestroyComputeBuffer(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+            Debug.Assert(IsComputeBufferExists(name));
+
+            var buffer = m_buffers[name];
+            buffer.Release();
+
+            m_buffers.Remove(name);
+        }
+
+        public ComputeBuffer GetComputeBuffer(string name) {
+            Debug.Assert(name != null && name != string.Empty);
+            Debug.Assert(IsComputeBufferExists(name));
+
+            return m_buffers[name];
         }
     }
 }

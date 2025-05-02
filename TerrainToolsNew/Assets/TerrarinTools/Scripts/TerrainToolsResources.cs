@@ -16,6 +16,8 @@ namespace TerrainTools {
         public ComputeShader TerrainBrushesCompute;
         [Tooltip("The material which will be used to blit textures.")]
         public Material BlitMaterial;
+        [Tooltip("The shader which will be used to draw hologram.")]
+        public Material HologramMaterial;
 
         [Header("Detail Settings:")]
         [Tooltip("Auto Adjust pixel error to 1.")]

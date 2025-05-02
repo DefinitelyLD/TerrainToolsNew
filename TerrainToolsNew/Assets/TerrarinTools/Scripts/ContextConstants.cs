@@ -15,5 +15,9 @@
         public const string OutputHeightmapTexture = "OutputHeightmapTexture";
 
         public const string BufferNormalmapTexture = "BufferNormalmapTexture";
+
+        public const string HologramMesh = "HologramMesh";
+
+        public const string APIGetHeightTexture = "APIGetHeightTexture";
     }
 }

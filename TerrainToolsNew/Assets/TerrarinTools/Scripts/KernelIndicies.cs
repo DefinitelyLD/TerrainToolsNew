@@ -11,12 +11,15 @@
         CurveyStripsBrush,
         SpiralBrush,
         DoubleSpiralBrush,
+        PatternEraseBrush,
 
         PaintBrush,
+        WaterBrush,
 
         MaskHeightmap,
         Compose,
         Tween,
-        ComputeNormals
+        ComputeNormals,
+        TessellateGridMesh
     }
 }

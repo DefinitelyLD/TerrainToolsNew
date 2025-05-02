@@ -9,13 +9,16 @@
 #pragma kernel CurveyStripsBrush
 #pragma kernel SpiralBrush
 #pragma kernel DoubleSpiralBrush
+#pragma kernel PatternEraseBrush
 
 #pragma kernel PaintBrush
+#pragma kernel WaterBrush
 
 #pragma kernel MaskHeightmap
 #pragma kernel Compose
 #pragma kernel Tween
 #pragma kernel ComputeNormals
+#pragma kernel TessellateGridMesh
 
 #define PI 3.14159265358979323846
 #define PATTERN_UV_REDZONE 8.0
@@ -57,6 +60,15 @@ float BrushHeight;
 int BrushStripCount;
 
 float TweenStrength;
+
+float2 GridMeshWorldPosition;
+float2 GridHightmapTexelPosition;
+uint2 GridCellCount;
+float GridCellSize;
+
+RWStructuredBuffer<float3> OutputMeshVertices;
+RWStructuredBuffer<uint> OutputMeshIndices;
+RWStructuredBuffer<float2> OutputMeshUVs;
 
 float2 RotateUV(float2 uv, float angleDegrees)
 {
@@ -214,7 +226,7 @@ void FlatBrush(uint3 id : SV_DispatchThreadID)
     float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
     float mask = GetBrushMaskValue(id);
     
-    currentHeight += BrushStrength * DeltaTime * mask;
+    currentHeight = BrushHeight * mask;
     currentHeight = clamp(currentHeight, 0, BrushHeight);
     
     currentHeight = clamp(currentHeight, 0, 0.5);
@@ -250,7 +262,7 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
     float2 uv = UVFromId(id, PATTERN_UV_REDZONE);
     uv = RotateUV(uv, BrushAngle);
     
-    float wave = sqrt(max(sin((uv.x + 0.0) * BrushStripCount * PI * 2.0), 0));
+    float wave = sqrt(max(sin((uv.x + 0.5) * BrushStripCount * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 
@@ -282,8 +294,20 @@ void DoubleSpiralBrush(uint3 id : SV_DispatchThreadID)
     
 }
 
+[numthreads(32,32,1)]
+void PatternEraseBrush(uint3 id: SV_DispatchThreadID)
+{
+    
+}
+
 [numthreads(32, 32, 1)]
 void PaintBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
+[numthreads(32, 32, 1)]
+void WaterBrush(uint3 id : SV_DispatchThreadID)
 {
     
 }
@@ -375,4 +399,57 @@ void ComputeNormals(uint3 id : SV_DispatchThreadID)
 
     // Swizzle to match A2B10G10R10 layout: R -> Z, G -> Y, B -> X
     NormalmapTexture[p] = float4(encoded.z, encoded.y, encoded.x, 1.0);
+}
+
+[numthreads(32, 32, 1)]
+void TessellateGridMesh(uint3 id: SV_DispatchThreadID)
+{
+    uint gridWidth = GridCellCount.x + 1;
+    uint gridHeight = GridCellCount.y + 1;
+
+    if (id.x >= gridWidth || id.y >= gridHeight)
+        return;
+
+    uint vertexIndex = id.y * gridWidth + id.x;
+
+    // Compute world position
+    float xPos = GridMeshWorldPosition.x + (id.x * GridCellSize);
+    float zPos = GridMeshWorldPosition.y + (id.y * GridCellSize);
+
+    // Compute UV (for visualization / texturing)
+    float u = (float) id.x / GridCellCount.x;
+    float v = (float) id.y / GridCellCount.y;
+    
+    OutputMeshUVs[vertexIndex] = float2(u, v);
+
+    // Heightmap texel coordinates
+    uint2 texelCoord = GridHightmapTexelPosition + uint2(id.x, id.y);
+
+    // Sample height value
+    float height = HeightmapTexture.Load(int3(texelCoord, 0));
+    height *= TerrainSize.y * 2.0;
+    
+
+    OutputMeshVertices[vertexIndex] = float3(xPos, height, zPos);
+
+    // Skip triangle generation if on last row/column
+    if (id.x >= GridCellCount.x || id.y >= GridCellCount.y)
+        return;
+
+    // Triangle indices
+    uint baseVertex = id.y * gridWidth + id.x;
+    uint baseIndex = (id.y * GridCellCount.x + id.x) * 6;
+
+    uint i0 = baseVertex;
+    uint i1 = baseVertex + 1;
+    uint i2 = baseVertex + gridWidth;
+    uint i3 = baseVertex + gridWidth + 1;
+
+    OutputMeshIndices[baseIndex + 0] = i0;
+    OutputMeshIndices[baseIndex + 1] = i2;
+    OutputMeshIndices[baseIndex + 2] = i1;
+
+    OutputMeshIndices[baseIndex + 3] = i1;
+    OutputMeshIndices[baseIndex + 4] = i2;
+    OutputMeshIndices[baseIndex + 5] = i3;
 }

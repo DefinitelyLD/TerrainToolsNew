@@ -13,6 +13,7 @@ namespace TerrainTools {
 
         bool IsDebugMode();
         Material GetBlitMaterial();
+        Material GetHologramMaterial();
         CommandBuffer GetCommandBuffer();
         Vector3Int GetDispatchSize();
         int GetThreadGroupSize();
@@ -34,6 +35,12 @@ namespace TerrainTools {
         void DestroyRenderTexture(string name);
         void DestroyGraphicsTexture(string name);
 
+
+        bool IsComputeBufferExists(string name);
+        ComputeBuffer CreateComputeBuffer(string name, int count, int stride, ComputeBufferType type, ComputeBufferMode usage);
+        void DestroyComputeBuffer(string name);
+        ComputeBuffer GetComputeBuffer(string name);
+
         bool IsMeshsExists(string name);
         Mesh GetMesh(string name);
         Mesh CreateMesh(string name, Vector3[] vertices, int[] triangles, Vector2[] uv, bool supportLargeIndcies);
@@ -46,7 +53,7 @@ namespace TerrainTools {
         BrushData GetBrushData();
         Texture2D GetCurrentBrushShape();
         Texture2D GetTerrainMaskTexture();
-        TerrainToolsTextureDebug GetTextureDebug();
+        TerrainToolsDebugView GetDebugView();
 
     }
 }

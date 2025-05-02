@@ -118,7 +118,7 @@ namespace TerrainTools {
 
         public override void OnBrushUpdate(IBrushContext context) {
             if (context.IsDebugMode()) {
-                var debug = context.GetTextureDebug();
+                var debug = context.GetDebugView();
 
                 debug.SetTexture("Pattern Texture", context.GetRenderTexture(PATTERN_TEXTURE));
                 debug.SetTexture("Pattern BrushHeightmap Result Texture", context.GetRenderTexture(PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE));
