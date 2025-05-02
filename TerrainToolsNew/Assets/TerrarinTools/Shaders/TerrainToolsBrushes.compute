@@ -367,6 +367,12 @@ void ComputeNormals(uint3 id : SV_DispatchThreadID)
     float dy = 2.0 * TerrainSize.y;
     float dz = (hD - hU) * TerrainSize.z;
 
+    //float3 normal = normalize(float3(dx, dy, dz));
+    //NormalmapTexture[p] = float4(normal * 0.5 + 0.5, 1.0); // Convert to [0,1] range
+    
     float3 normal = normalize(float3(dx, dy, dz));
-    NormalmapTexture[p] = float4(normal * 0.5 + 0.5, 1.0); // Convert to [0,1] range
+    float3 encoded = normal * 0.5 + 0.5; // [-1,1] to [0,1]
+
+    // Swizzle to match A2B10G10R10 layout: R -> Z, G -> Y, B -> X
+    NormalmapTexture[p] = float4(encoded.z, encoded.y, encoded.x, 1.0);
 }
