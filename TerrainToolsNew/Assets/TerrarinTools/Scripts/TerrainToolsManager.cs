@@ -149,24 +149,9 @@ namespace TerrainTools {
             var tweener = new TerrainToolsTweener();
             tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
 
-            // computing normals
-            var normalComputer = new TerrainToolsNormalsComputer();
-            normalComputer.ComputeNormalsPass(m_context, unityTerrainNormalmap);
-
             m_stopwatch.Stop();
 
             TerrainToolsUtils.Log($"Post process gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
-                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
-                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
-
-            m_stopwatch.Reset();
-            m_stopwatch.Start();
-
-            terrain.Flush();
-
-            m_stopwatch.Stop();
-
-            TerrainToolsUtils.Log($"Terarin flushing took : {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
@@ -256,6 +241,19 @@ namespace TerrainTools {
 
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands immediate execution took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+            var terrain = m_context.GetTerrain();
+
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            terrain.Flush();
+
+            m_stopwatch.Stop();
+
+            TerrainToolsUtils.Log($"Terarin flushing took : {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
         }

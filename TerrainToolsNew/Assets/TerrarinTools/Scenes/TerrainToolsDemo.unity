@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1017154052
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -533,7 +533,26 @@ MonoBehaviour:
     terrainControl04: {fileID: 0}
     terrainHolesMask: {fileID: 2800000, guid: 29ae4a487e9d3414d8293b67d61a1c74, type: 3}
     useLayersOrderAsID: 0
-    terrainLayers: []
+    terrainLayers:
+    - name: Terrain Layer Beach
+      isInitialized: 1
+      layerID: 1
+      layerColor: {r: 1, g: 1, b: 1, a: 1}
+      useCustomLayer: 0
+      terrainLayer: {fileID: 0}
+      useCustomTextures: 0
+      layerAlbedo: {fileID: 0}
+      layerNormal: {fileID: 0}
+      layerShader: {fileID: 0}
+      useCustomSettings: 0
+      layerSpecular: {r: 0, g: 0, b: 0, a: 1}
+      layerRemapMin: {x: 0, y: 0, z: 0, w: 0}
+      layerRemapMax: {x: 1, y: 1, z: 1, w: 1}
+      layerSmoothness: 1
+      layerNormalScale: 1
+      useCustomCoords: 0
+      layerUVMode: 1
+      layerUVValue: {x: 1, y: 1, z: 0, w: 0}
   terrain: {fileID: 1206018916}
   meshRenderer: {fileID: 0}
   terrainMaterial: {fileID: 2100000, guid: cdb0960935953e642a139afafc801684, type: 2}
