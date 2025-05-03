@@ -1,7 +1,7 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TerrainTools {
+
     [TerrainBrush]
     public sealed class RaiseTerrainBrush : TerrainBrush {
         public override BrushType GetBrushType() {

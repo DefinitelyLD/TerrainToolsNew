@@ -1,0 +1,22 @@
+﻿using System;
+
+namespace TerrainTools {
+    [TerrainBrush]
+    public sealed class LowerWaterBrush : TerrainBrush {
+        public override BrushType GetBrushType() {
+            throw new NotImplementedException();
+        }
+
+        public override void OnBrushDown(IBrushContext context) {
+            throw new NotImplementedException();
+        }
+
+        public override void OnBrushUp(IBrushContext context) {
+            throw new NotImplementedException();
+        }
+
+        public override void OnBrushUpdate(IBrushContext context) {
+            throw new NotImplementedException();
+        }
+    }
+}

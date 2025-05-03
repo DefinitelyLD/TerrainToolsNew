@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 namespace TerrainTools {
     public interface IBrushContext {
 
+        Material GetWaterDeformDecalMaterial();
         bool IsHeightmapCompositiveExists(string name);
         void RegisterHeightmapCompositive(string name);
         void RemoveHeightmapCompositive(string name);

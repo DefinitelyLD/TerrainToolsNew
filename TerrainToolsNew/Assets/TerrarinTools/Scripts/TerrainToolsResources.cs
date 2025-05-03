@@ -8,6 +8,10 @@ namespace TerrainTools {
         [Tooltip("The Brushes shapes/masks.")]
         public Texture2D[] Brushes;
 
+        [Header("Water:")]
+        public Material WaterDeformDecalMaterial;
+        public WaterPrefabs WaterPrefabs;
+
         [Header("Mask:")]
         [Tooltip("The Shape to mask the terrain with.")]
         public Texture2D TerrainMask;
