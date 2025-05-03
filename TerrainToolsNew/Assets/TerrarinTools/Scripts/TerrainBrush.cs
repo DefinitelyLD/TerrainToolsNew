@@ -110,8 +110,6 @@ namespace TerrainTools {
             bounds.z = bounds.x + (brushData.brushSize.x / (float)heightmapSize.x);
             bounds.w = bounds.y + (brushData.brushSize.y / (float)heightmapSize.y);
 
-            Debug.Log($"Hologram Bounds: {bounds} Brush Position: {innerBrushPosition} Actual Brush Size: {brushData.actualBrushSize}, BrushSize: {brushData.brushSize}");
-
             hologramMaterial.SetTexture("_Heightmap", unityTerrainHeightmap);
             hologramMaterial.SetVector("_TerrainSize", terrainSize);
             hologramMaterial.SetVector("_Bounds", bounds);
