@@ -4,6 +4,8 @@ using Debug = UnityEngine.Debug;
 namespace TerrainTools {
     public struct TerrainSettingsOperations {
         public readonly void SetTerrainSettings(Terrain terrain, TerrainToolsResources resources) {
+            Debug.Assert(terrain.terrainData.enableHolesTextureCompression == false, "Terrain Holes Texture Compression must be disabled.");
+
             if (resources.AutoAdjustPixelError) {
                 var pixelError = 1;
 

@@ -418,9 +418,9 @@ Material:
     - _AlphaToMaskInspectorValue: 0
     - _Anisotropy: 0
     - _BlendMode: 0
-    - _CategoryTerrain: 1
+    - _CategoryTerrain: 0
     - _CoatMask: 0
-    - _ConformCategory: 1
+    - _ConformCategory: 0
     - _ConformEnd: 1
     - _ConformHeightMode: 1
     - _ConformHeightValue: 0
@@ -430,7 +430,7 @@ Material:
     - _CullModeForward: 2
     - _Cutoff: 0.5
     - _CutoutBakeInfo: 0
-    - _CutoutCategory: 1
+    - _CutoutCategory: 0
     - _CutoutElementMode: 0
     - _CutoutEnd: 1
     - _CutoutGlobalValue: 1
@@ -450,7 +450,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _DrynessBakeInfo: 0
-    - _DrynessCategory: 1
+    - _DrynessCategory: 0
     - _DrynessElementMode: 0
     - _DrynessEnd: 1
     - _DrynessGlobalValue: 1
@@ -463,7 +463,7 @@ Material:
     - _DrynessSubsurfaceValue: 0.5
     - _DstBlend: 0
     - _DstBlend2: 0
-    - _EmissiveCategory: 1
+    - _EmissiveCategory: 0
     - _EmissiveColorMode: 1
     - _EmissiveElementMode: 0
     - _EmissiveEnd: 1
@@ -482,7 +482,7 @@ Material:
     - _EndTerrain: 1
     - _EnergyConservingSpecularColor: 1
     - _GlobalAtmoLayerValue: 0
-    - _GlobalCategory: 1
+    - _GlobalCategory: 0
     - _GlobalEnd: 1
     - _GlobalFadeLayerValue: 0
     - _GlobalFormLayerValue: 0
@@ -521,7 +521,7 @@ Material:
     - _ObjectSpaceUVMappingEmissive: 0
     - _OpaqueCullMode: 2
     - _OverlayBakeInfo: 0
-    - _OverlayCategory: 1
+    - _OverlayCategory: 0
     - _OverlayCoordMode: 0
     - _OverlayElementMode: 0
     - _OverlayEnd: 1
@@ -548,7 +548,7 @@ Material:
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
-    - _RenderCategory: 1
+    - _RenderCategory: 0
     - _RenderClip: 0
     - _RenderDecals: 0
     - _RenderEnd: 1
@@ -605,7 +605,7 @@ Material:
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _TintingBakeInfo: 0
-    - _TintingCategory: 1
+    - _TintingCategory: 0
     - _TintingElementMode: 0
     - _TintingEnd: 1
     - _TintingGlobalValue: 1
@@ -629,7 +629,7 @@ Material:
     - _UseEmissiveIntensity: 0
     - _UseShadowThreshold: 0
     - _WetnessBakeInfo: 0
-    - _WetnessCategory: 1
+    - _WetnessCategory: 0
     - _WetnessContrastValue: 0.2
     - _WetnessDropsDistValue: 50
     - _WetnessDropsIntensityValue: 1

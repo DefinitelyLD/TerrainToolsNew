@@ -18,5 +18,8 @@ namespace TerrainTools {
         public bool hasResourceFencePassed;
 
         public TweenData tweenData;
+
+        public float terrainMaskBaseHeight;
+        public int terrainMaskBorder;
     }
 }

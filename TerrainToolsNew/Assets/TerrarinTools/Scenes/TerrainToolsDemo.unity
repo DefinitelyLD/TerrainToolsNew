@@ -531,7 +531,7 @@ MonoBehaviour:
     terrainControl02: {fileID: 0}
     terrainControl03: {fileID: 0}
     terrainControl04: {fileID: 0}
-    terrainHolesMask: {fileID: 0}
+    terrainHolesMask: {fileID: 2800000, guid: 29ae4a487e9d3414d8293b67d61a1c74, type: 3}
     useLayersOrderAsID: 0
     terrainLayers: []
   terrain: {fileID: 1206018916}

@@ -70,6 +70,9 @@ RWStructuredBuffer<float3> OutputMeshVertices;
 RWStructuredBuffer<uint> OutputMeshIndices;
 RWStructuredBuffer<float2> OutputMeshUVs;
 
+float TerrainMaskBaseHeight;
+float TerrainMaskBorder;
+
 float2 RotateUV(float2 uv, float angleDegrees)
 {
     float angleRadians = radians(angleDegrees);
@@ -327,7 +330,39 @@ void MaskHeightmap(uint3 id : SV_DispatchThreadID)
     
     mask = mask > 0.0 ? 1.0 : 0.0;
     
-    float newHeight = height * mask;
+    bool forceMask = false;
+
+    for (int j = -TerrainMaskBorder; j <= TerrainMaskBorder; ++j)
+    {
+        int y = id.y + j;
+        if (y < 0 || y >= (int) limits.y)
+            continue;
+
+        bool breaked = false;
+        for (int i = -TerrainMaskBorder; i <= TerrainMaskBorder; ++i)
+        {
+            int x = id.x + i;
+            if (x < 0 || x >= (int) limits.x)
+                continue;
+
+            int2 pos = int2(x, y);
+            float borderMask = HeightmapMaskTexture.Load(int3(pos.xy, 0));
+
+            if (borderMask == 0)
+            {
+                forceMask = true;
+                breaked = true;
+                break;
+            }
+        }
+
+        if (breaked)
+            break;
+    }
+     
+    mask = forceMask ? 0.0 : mask;
+    
+    float newHeight = (height * mask) + TerrainMaskBaseHeight;
     
     OutputHeightmapTexture[id.xy] = newHeight;
 }

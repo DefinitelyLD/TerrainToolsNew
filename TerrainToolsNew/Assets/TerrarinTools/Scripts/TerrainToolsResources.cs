@@ -8,8 +8,13 @@ namespace TerrainTools {
         [Tooltip("The Brushes shapes/masks.")]
         public Texture2D[] Brushes;
 
+        [Header("Mask:")]
         [Tooltip("The Shape to mask the terrain with.")]
         public Texture2D TerrainMask;
+        [Tooltip("The region inside of the mask to also act as outside mask.")]
+        public int TerrainMaskBorder = 1;
+        [Tooltip("The height of the terrain that will be maintained at all cost.")]
+        public int TerrainMaskBaseHeight = 1;
 
         [Header("Shaders And Materials:")]
         [Tooltip("The compute shader containg all the brushes kernels.")]

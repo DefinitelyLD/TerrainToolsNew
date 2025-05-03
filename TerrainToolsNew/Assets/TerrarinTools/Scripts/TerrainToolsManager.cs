@@ -23,6 +23,7 @@ namespace TerrainTools {
         public float brushFallback;
         public float deltaTime;
         public float tweenStrength;
+
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -92,6 +93,9 @@ namespace TerrainTools {
             var texelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, heightmapResolution);
             var gpuBrushHeight = brushSizeOps.BrushHeightToGPUHeightValue(m_brushHeight, terrainSize);
 
+            var gpuTerrainMaskBaseHeight = brushSizeOps.BrushHeightToGPUHeightValue(m_resources.TerrainMaskBaseHeight, terrainSize);
+            var gpuTerrainMaskBorder = brushSizeOps.BrushSizeToTexelSize(new Vector2Int(m_resources.TerrainMaskBorder, m_resources.TerrainMaskBorder), terrainSize, heightmapResolution).x;
+
             var actualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(texelBrushSize);
             var brushStripeCount = brushSizeOps.CalculateStripCount(m_brushSize, m_brushHeight);
 
@@ -110,6 +114,9 @@ namespace TerrainTools {
                 deltaTime = m_deltaTime,
                 strength = m_tweenStrength,
             };
+
+            newBrushData.terrainMaskBaseHeight = gpuTerrainMaskBaseHeight;
+            newBrushData.terrainMaskBorder = gpuTerrainMaskBorder;
 
             if (m_context.IsDebugMode()) {
                 var debug = m_context.GetDebugView();

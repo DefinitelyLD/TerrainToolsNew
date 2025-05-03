@@ -22,9 +22,11 @@ namespace TerrainTools {
 
             var heightmapFormat = terrain.terrainData.heightmapTexture.graphicsFormat;
             var normalmapFormat = terrain.normalmapTexture.graphicsFormat;
+            var holesmapFormat = terrain.terrainData.holesTexture.graphicsFormat;
 
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
             var normalmapSize = terrain.normalmapTexture.GetSize();
+            var holesmapSize = terrain.terrainData.holesTexture.GetSize();
 
             var terrainSize = terrain.terrainData.size;
 
@@ -160,7 +162,7 @@ namespace TerrainTools {
 
             // the texture which will mask the heightmap
             if (context.IsRenderTextureExists(ContextConstants.TerrainMaskTexture) == false) {
-                var texture = context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
+                var texture = context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, holesmapSize, holesmapFormat, false);
 
                 // resizing mask texture
                 commandBuffer.Blit(context.GetTerrainMaskTexture(), texture, blitMaterial);
@@ -168,14 +170,14 @@ namespace TerrainTools {
 
             var maskTexture = context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
-            if (maskTexture.CheckSize(heightmapSize) == false) {
+            if (maskTexture.CheckSize(holesmapSize) == false) {
                 if (!hasFencePassed) {
                     TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
                     return;
                 }
 
                 context.DestroyRenderTexture(ContextConstants.TerrainMaskTexture);
-                maskTexture = context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, false);
+                maskTexture = context.CreateRenderTexture(ContextConstants.TerrainMaskTexture, holesmapSize, holesmapFormat, false);
 
                 // resizing mask texture
                 commandBuffer.Blit(context.GetTerrainMaskTexture(), maskTexture, blitMaterial);
@@ -241,8 +243,23 @@ namespace TerrainTools {
                     TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
                     return;
                 }
-                context.DestroyRenderTexture(ContextConstants.FinalTerrainHeightmap);
+                context.DestroyRenderTexture(ContextConstants.BufferHeightmapTexture);
                 bufferHeightmapTexture = context.CreateRenderTexture(ContextConstants.BufferHeightmapTexture, heightmapSize, heightmapFormat, true);
+            }
+            //--
+            if (context.IsRenderTextureExists(ContextConstants.SecondBufferHeightmapTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.SecondBufferHeightmapTexture, heightmapSize, heightmapFormat, true);
+            }
+
+            var secondBufferHeightmapTexture = context.GetRenderTexture(ContextConstants.SecondBufferHeightmapTexture);
+
+            if (bufferHeightmapTexture.CheckSize(heightmapSize) == false) {
+                if (!hasFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
+                }
+                context.DestroyRenderTexture(ContextConstants.SecondBufferHeightmapTexture);
+                bufferHeightmapTexture = context.CreateRenderTexture(ContextConstants.SecondBufferHeightmapTexture, heightmapSize, heightmapFormat, true);
             }
             //--
             if (context.IsRenderTextureExists(ContextConstants.BufferNormalmapTexture) == false) {
@@ -286,16 +303,18 @@ namespace TerrainTools {
                     debug.SetMesh("Hologram Mesh", context.GetMesh(ContextConstants.HologramMesh));
                 }
 
-                debug.SetTexture("API Get Height", apiGetHeightTexture);
+                //debug.SetTexture("Unity Terrain Holes Texture: ", terrain.terrainData.holesTexture);
 
+                debug.SetTexture("API Get Height", apiGetHeightTexture);
                 debug.SetTexture("Buffer Normalmap", bufferNormalmapTexture);
                 debug.SetTexture("Unity Normalmap", terrain.normalmapTexture);
                 debug.SetTexture("Brush Mask", brushMaskTexture);
                 debug.SetTexture("Heightmap", heightmapTexture);
                 debug.SetTexture("Brush Heightmap", brushHeightmap);
                 debug.SetTexture("Heightmap Result", heightmapResultTexture);
-                debug.SetTexture("Mask", maskTexture);
+                debug.SetTexture("Terrain Mask", maskTexture);
                 debug.SetTexture("Buffer Heightmap", bufferHeightmapTexture);
+                debug.SetTexture("Second Buffer Heightmap", secondBufferHeightmapTexture);
                 debug.SetTexture("Terrain Heightmap", terrain.terrainData.heightmapTexture);
                 debug.SetTexture("Virtual Heightmap", virtualTerrainHeightmap);
                 debug.SetTexture("Final Heightmap", finalTerrainHeightmap);

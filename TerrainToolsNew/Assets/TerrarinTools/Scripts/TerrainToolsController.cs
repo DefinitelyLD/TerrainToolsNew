@@ -65,6 +65,12 @@ namespace TerrainTools {
             }
         }
 
+        [ContextMenu(nameof(ForceSyncTerrain))]
+        private void ForceSyncTerrain() {
+            var terrain = Terrain.activeTerrain;
+            terrain.terrainData.DirtyHeightmapRegion(new RectInt(0, 0, terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution), TerrainHeightmapSyncControl.HeightAndLod);
+        }
+
         private void OnDestroy() {
             if (m_manager != null) {
                 m_manager.Dispose();

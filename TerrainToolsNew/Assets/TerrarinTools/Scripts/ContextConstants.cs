@@ -11,6 +11,7 @@
         public const string FinalTerrainHeightmap = "FinalTerrainHeightmap";
         public const string TerrainHeightmapTexture = "TerrainHeightmapTexture";
         public const string BufferHeightmapTexture = "BufferHeightmapTexture";
+        public const string SecondBufferHeightmapTexture = "SecondBufferHeightmapTexture";
 
         public const string OutputHeightmapTexture = "OutputHeightmapTexture";
 
