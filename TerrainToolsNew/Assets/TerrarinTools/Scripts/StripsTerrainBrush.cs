@@ -11,8 +11,6 @@ namespace TerrainTools {
         }
 
         public override void Prepare(IBrushContext context) {
-            base.Prepare(context);
-
             var commandBuffer = context.GetCommandBuffer();
 
             var brushData = context.GetBrushData();
@@ -86,6 +84,10 @@ namespace TerrainTools {
 
             commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
                 patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+        }
+
+        public override void CopyResults(IBrushContext context) {
+            // nothing
         }
     }
 }

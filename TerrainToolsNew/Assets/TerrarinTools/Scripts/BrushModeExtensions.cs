@@ -16,8 +16,8 @@ namespace TerrainTools {
             BrushMode.DoubleSpiral => typeof(DoubleSpiralTerrainBrush),
             BrushMode.Rings => typeof(RingsTerrainBrush),
             BrushMode.PatternEraser => typeof(PatternEraseTerrainBrush),
-            BrushMode.RaiseWater => typeof(RaiseWaterTerrainBrush),
-            BrushMode.LowerWater => typeof(LowerWaterTerrainBrush),
+            BrushMode.RaiseWater => typeof(WaterRaiseTerrainBrush),
+            BrushMode.LowerWater => typeof(WaterLowerTerrainBrush),
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
     }

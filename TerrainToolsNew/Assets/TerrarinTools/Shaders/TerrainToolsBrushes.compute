@@ -325,13 +325,43 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void WaterRaiseBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float mask = GetBrushMaskValue(id);
+    mask = mask > 0.0 ? 1.0 : 0.0;
+    
+    if (mask == 0.0)
+    {
+        return;
+    }
+   
+    float newValue = 1;
+    
+    OutputBrushHeightmapTexture[id.xy] = newValue;
 }
 
 [numthreads(32, 32, 1)]
 void WaterLowerBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float mask = GetBrushMaskValue(id);
+    mask = mask > 0.0 ? 1.0 : 0.0;
+    
+    if (mask == 0.0)
+    {
+        return;
+    }
+   
+    float newValue = 0;
+    
+    OutputBrushHeightmapTexture[id.xy] = newValue;
 }
 
 

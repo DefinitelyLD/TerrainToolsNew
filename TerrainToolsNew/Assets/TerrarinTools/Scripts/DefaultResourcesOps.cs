@@ -448,6 +448,9 @@ namespace TerrainTools {
 
                 waterInstances.WaterDeformDecal.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
             }
+            if (waterInstances.WaterDeformDecal.regionSize != Vector2.one) {
+                //waterInstances.WaterDeformDecal.regionSize = Vector2.one;
+            }
             //--
 
             if (context.IsRenderTextureExists(ContextConstants.WaterBrushResultMaskTexture) == false) {
@@ -498,6 +501,15 @@ namespace TerrainTools {
                 apiGetHeightTexture = context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
             }
             //--
+
+            if(waterInstances.WaterDeformDecal.material != waterDeformMaterial) {
+                waterInstances.WaterDeformDecal.material = waterDeformMaterial;
+            }
+            if(waterInstances.WaterDeformDecal.updateMode != CustomRenderTextureUpdateMode.Realtime) {
+                waterInstances.WaterDeformDecal.updateMode = CustomRenderTextureUpdateMode.Realtime;
+            }
+            waterDeformMaterial.SetTexture("_Heightmap", terrain.terrainData.heightmapTexture);
+            waterDeformMaterial.SetTexture("_Mask", finalWaterMaskTexture);
 
 
             //--

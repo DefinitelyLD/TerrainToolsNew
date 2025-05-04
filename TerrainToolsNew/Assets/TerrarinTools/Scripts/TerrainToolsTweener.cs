@@ -11,6 +11,9 @@ namespace TerrainTools {
             var finalHeightmap = context.GetRenderTexture(ContextConstants.FinalTerrainHeightmap);
             var bufferHeightmap = context.GetRenderTexture(ContextConstants.BufferHeightmapTexture);
 
+            var virtualWaterTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
+            var finalWaterTexture = context.GetRenderTexture(ContextConstants.FinalWaterMaskTexture);
+
             var dispatchSize = context.GetDispatchSize(finalHeightmap.GetSize());
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "HeightmapTexture", finalHeightmap);
@@ -23,6 +26,8 @@ namespace TerrainTools {
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
             commandBuffer.CopyTexture(bufferHeightmap, output);
+
+            commandBuffer.CopyTexture(virtualWaterTexture, finalWaterTexture);
         }
     }
 }

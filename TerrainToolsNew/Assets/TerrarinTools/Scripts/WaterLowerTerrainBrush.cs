@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace TerrainTools {
     [TerrainBrush]
-    public class PatternEraseTerrainBrush : TerrainBrush {
+    public sealed class WaterLowerTerrainBrush : TerrainBrush {
         public override BrushType GetBrushType() {
-            return BrushType.Heightmap;
+            return BrushType.Other;
         }
 
         public override void Prepare(IBrushContext context) {
@@ -15,8 +15,8 @@ namespace TerrainTools {
             var terrain = context.GetTerrain();
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
 
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
-            var patternTexture = context.GetRenderTexture(ContextConstants.PatternTexture);
+            var waterBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
+            var virtualWaterTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
@@ -25,22 +25,21 @@ namespace TerrainTools {
             slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
             commandBuffer.CopyTexture(
-                patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
-                patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
+                virtualWaterTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
+                waterBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
         }
 
         public override void OnBrushDown(IBrushContext context) {
 
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
-
-            var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
-
             var brushData = context.GetBrushData();
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.PatternEraseBrush, "BrushMaskTexture", brushShapeTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.PatternEraseBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
+            var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+            var waterBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
+
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.WaterLowerBrush, "BrushMaskTexture", brushShapeTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.WaterLowerBrush, "OutputBrushHeightmapTexture", waterBrushHeightmapResultTexture);
 
             commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
@@ -60,15 +59,15 @@ namespace TerrainTools {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
 
-            var stripBrushDispatchSize = context.GetDispatchSize();
+            var waterBrushDispatchSize = context.GetDispatchSize();
 
-            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.PatternEraseBrush, stripBrushDispatchSize.x, stripBrushDispatchSize.y, stripBrushDispatchSize.z);
+            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.WaterLowerBrush, waterBrushDispatchSize.x, waterBrushDispatchSize.y, waterBrushDispatchSize.z);
 
-            var patternTexture = context.GetRenderTexture(ContextConstants.PatternTexture);
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
+            var virtualWaterTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
+            var waterBrushMaskResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
 
             var brushData = context.GetBrushData();
-            var heightmapSize = patternTexture.GetSize();
+            var heightmapSize = virtualWaterTexture.GetSize();
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
@@ -76,8 +75,8 @@ namespace TerrainTools {
             var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.brushPosition, heightmapSize);
             slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
-            commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+            commandBuffer.CopyTexture(waterBrushMaskResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                virtualWaterTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
         }
 
         public override void CopyResults(IBrushContext context) {
