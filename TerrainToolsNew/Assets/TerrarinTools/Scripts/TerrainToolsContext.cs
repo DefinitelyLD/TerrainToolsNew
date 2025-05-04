@@ -16,6 +16,8 @@ namespace TerrainTools {
         private CommandBuffer m_commandBuffer;
 
         private readonly TerrainToolsResources m_resources;
+        private readonly WaterInstances m_waterInstances;
+
         private BrushData m_brushData;
 
         private readonly Dictionary<string, RenderTexture> m_renderTextures;
@@ -30,7 +32,7 @@ namespace TerrainTools {
 
         private readonly TerrainToolsDebugView m_debug;
 
-        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int threadGroupSize, TerrainToolsDebugView debugView) {
+        public TerrainToolsContext(Terrain terrain, TerrainToolsResources resources, int threadGroupSize, TerrainToolsDebugView debugView, WaterInstances waterInstances) {
             m_terrain = terrain;
 
             m_commandBuffer = new CommandBuffer();
@@ -45,6 +47,7 @@ namespace TerrainTools {
 
             m_heightmapCompositives = new();
             m_debug = debugView;
+            m_waterInstances = waterInstances;
         }
 
         public void UpdateData(BrushData brushData) {
@@ -404,6 +407,10 @@ namespace TerrainTools {
 
         public Material GetWaterDeformDecalMaterial() {
             return m_resources.WaterDeformDecalMaterial;
+        }
+
+        public WaterInstances GetWaterInstances() {
+            return m_waterInstances;            
         }
     }
 }

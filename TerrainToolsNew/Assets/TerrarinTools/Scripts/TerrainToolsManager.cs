@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
@@ -162,7 +163,7 @@ namespace TerrainTools {
             //m_pointerPosition = realPointerPosition;
 
             var ray = camera.ScreenPointToRay(m_pointerPosition);
-            if (Physics.Raycast(ray, out RaycastHit hit) == false) {
+            if (Physics.Raycast(ray, out RaycastHit hit, float.PositiveInfinity, ~0, QueryTriggerInteraction.Ignore) == false) {
                 SubmitCommandBuffer(commandBuffer);
                 return;
             }
@@ -319,7 +320,14 @@ namespace TerrainTools {
                 debugView.Clear();
             }
 
-            m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE, debugView);
+
+            // creating water
+            WaterInstances waterInstances = new WaterInstances();
+            waterInstances.WaterSurface = GameObject.Instantiate(m_resources.WaterPrefabs.WaterSurfacePrefab, terrain.transform).GetComponent<WaterSurface>();
+            waterInstances.WaterExcluder = GameObject.Instantiate(m_resources.WaterPrefabs.WaterExcluderPrefab, terrain.transform).GetComponent<WaterExcluder>();
+            waterInstances.WaterDeformDecal = GameObject.Instantiate(m_resources.WaterPrefabs.WaterDeformDecalPrefab, terrain.transform).GetComponent<WaterDecal>();
+
+            m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE, debugView, waterInstances);
 
             var terrainSettingsOps = new TerrainSettingsOperations();
             terrainSettingsOps.SetTerrainSettings(terrain, m_resources);
@@ -327,13 +335,12 @@ namespace TerrainTools {
             m_fenceManager = new();
 
             var commandBuffer = m_context.GetCommandBuffer();
-
             commandBuffer.SetRenderTarget(terrain.terrainData.heightmapTexture);
             commandBuffer.ClearRenderTarget(false, true, Color.black);
 
             Graphics.ExecuteCommandBuffer(commandBuffer);
-
             terrain.terrainData.DirtyHeightmapRegion(new RectInt(0, 0, terrain.terrainData.heightmapResolution, terrain.terrainData.heightmapResolution), TerrainHeightmapSyncControl.HeightAndLod);
+
         }
 
         protected virtual void Dispose(bool disposing) {

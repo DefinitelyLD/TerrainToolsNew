@@ -13,6 +13,8 @@ namespace TerrainTools {
         public readonly void CreateAndResizeDefaultResources(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
+            var waterInstances = context.GetWaterInstances();
+            var waterDeformMaterial = context.GetWaterDeformDecalMaterial();
 
             var terrain = context.GetTerrain(); 
             var brushData = context.GetBrushData();
@@ -333,6 +335,34 @@ namespace TerrainTools {
             commandBuffer.Blit(brushTexture, brushMaskTexture, blitMaterial);
             //--
 
+            if(!Mathf.Approximately(waterInstances.WaterSurface.transform.localScale.x, terrainSize.x) || 
+               !Mathf.Approximately(waterInstances.WaterSurface.transform.localScale.z, terrainSize.z)) {
+                waterInstances.WaterSurface.transform.localScale = new Vector3(terrainSize.x, 1, terrainSize.z);
+            }
+            if(!Mathf.Approximately(waterInstances.WaterSurface.transform.position.x, terrainSize.x * 0.5f) ||
+               !Mathf.Approximately(waterInstances.WaterSurface.transform.position.x, terrainSize.z * 0.5f)) {
+
+                waterInstances.WaterSurface.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
+            }
+            if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.localScale.x, terrainSize.x) ||
+                !Mathf.Approximately(waterInstances.WaterExcluder.transform.localScale.z, terrainSize.z)) {
+                waterInstances.WaterExcluder.transform.localScale = new Vector3(terrainSize.x, 1, terrainSize.z);
+            }
+            if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, terrainSize.x * 0.5f) ||
+               !Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, terrainSize.z * 0.5f)) {
+
+                waterInstances.WaterExcluder.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
+            }
+            if (!Mathf.Approximately(waterInstances.WaterDeformDecal.transform.localScale.x, terrainSize.x) ||
+                !Mathf.Approximately(waterInstances.WaterDeformDecal.transform.localScale.z, terrainSize.z)) {
+                waterInstances.WaterDeformDecal.transform.localScale = new Vector3(terrainSize.x, 1, terrainSize.z);
+            }
+            if (!Mathf.Approximately(waterInstances.WaterDeformDecal.transform.position.x, terrainSize.x * 0.5f) ||
+               !Mathf.Approximately(waterInstances.WaterDeformDecal.transform.position.x, terrainSize.z * 0.5f)) {
+
+                waterInstances.WaterDeformDecal.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
+            }
+            //--
 
             if (context.IsHeightmapCompositiveExists(ContextConstants.PATTERN_TEXTURE) == false) {
                 context.RegisterHeightmapCompositive(ContextConstants.PATTERN_TEXTURE);

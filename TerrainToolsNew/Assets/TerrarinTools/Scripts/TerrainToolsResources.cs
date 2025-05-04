@@ -20,7 +20,7 @@ namespace TerrainTools {
         [Tooltip("The height of the terrain that will be maintained at all cost.")]
         public int TerrainMaskBaseHeight = 3;
 
-        [Header("Shaders And Materials:")]
+        [Header("Terrain Tools:")]
         [Tooltip("The compute shader containg all the brushes kernels.")]
         public ComputeShader TerrainBrushesCompute;
         [Tooltip("The material which will be used to blit textures.")]
