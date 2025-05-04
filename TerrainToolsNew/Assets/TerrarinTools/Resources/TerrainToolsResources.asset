@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TerrainToolsResources
   m_EditorClassIdentifier: 
   Brushes:
-  - {fileID: 2800000, guid: b68dfbcb6a23afe47acc28dc31470e83, type: 3}
+  - {fileID: 2800000, guid: 8f9c4e6772f81c0488252ffd5d0bf8f4, type: 3}
   - {fileID: 2800000, guid: 7596f43db1bd1354890b7587966faba0, type: 3}
   - {fileID: 2800000, guid: e1c4dbb8122a7c64597f7fee101ee02f, type: 3}
   - {fileID: 2800000, guid: 0abf406cf476d4c4bb0b51608e616e16, type: 3}

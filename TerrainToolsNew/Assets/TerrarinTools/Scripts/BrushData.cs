@@ -7,7 +7,7 @@ namespace TerrainTools {
         public float angle;
         public Vector2Int actualBrushSize;
 
-        public int stripCount;
+        public float stripCount;
         public float brushStrength;
         public float brushHeight;
         

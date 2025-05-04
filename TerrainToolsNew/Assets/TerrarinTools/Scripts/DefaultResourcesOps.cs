@@ -462,7 +462,7 @@ namespace TerrainTools {
             var waterBrushMaskResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
 
             if (waterBrushMaskResultTexture.CheckSize(brushData.actualBrushSize) == false) {
-                context.DestroyComputeBuffer(ContextConstants.WaterBrushResultMaskTexture);
+                context.DestroyRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
                 waterBrushMaskResultTexture = context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.actualBrushSize, GraphicsFormat.R32_SFloat, true);
             }
             //--
@@ -474,7 +474,7 @@ namespace TerrainTools {
             var finalWaterMaskTexture = context.GetRenderTexture(ContextConstants.FinalWaterMaskTexture);
 
             if (finalWaterMaskTexture.CheckSize(heightmapSize) == false) {
-                context.DestroyComputeBuffer(ContextConstants.FinalWaterMaskTexture);
+                context.DestroyRenderTexture(ContextConstants.FinalWaterMaskTexture);
                 finalWaterMaskTexture = context.CreateRenderTexture(ContextConstants.FinalWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
             }
             //--
@@ -486,7 +486,7 @@ namespace TerrainTools {
             var virtualWaterMaskTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
 
             if (virtualWaterMaskTexture.CheckSize(heightmapSize) == false) {
-                context.DestroyComputeBuffer(ContextConstants.VirtualWaterMaskTexture);
+                context.DestroyRenderTexture(ContextConstants.VirtualWaterMaskTexture);
                 virtualWaterMaskTexture = context.CreateRenderTexture(ContextConstants.VirtualWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
             }
 
@@ -499,7 +499,7 @@ namespace TerrainTools {
             var bufferWaterMaskTexture = context.GetRenderTexture(ContextConstants.BufferWaterMaskTexture);
 
             if (virtualWaterMaskTexture.CheckSize(heightmapSize) == false) {
-                context.DestroyComputeBuffer(ContextConstants.BufferWaterMaskTexture);
+                context.DestroyRenderTexture(ContextConstants.BufferWaterMaskTexture);
                 bufferWaterMaskTexture = context.CreateRenderTexture(ContextConstants.BufferWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
             }
             //--

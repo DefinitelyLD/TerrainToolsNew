@@ -5,24 +5,24 @@ namespace TerrainTools {
     public struct BrushSizeOperations {
         public static readonly Vector3 BrushSizeToWorldSize = new Vector3(0.1f, 0.1f, 0.1f);
 
-        public readonly int CalculateStripCount(Vector2Int brushSize, int brushHeight) {
+        public readonly float CalculateStripCount(Vector2Int brushSize, int brushHeight) {
             const float heightReference = 2f;
-            const float lengthReference = 6f;
+            const float lengthReference = 7f;
             const float referenceStripCount = 1f;
 
             //float length = (brushSize.x + brushSize.y) * 0.5f;
-            float length = brushSize.x;
+            float length = brushSize.y;
 
             float heightMultiple = brushHeight / heightReference;
             float lengthMultiple = length / lengthReference;
 
             // Prevent division by zero
             if (Mathf.Approximately(heightMultiple, 0f))
-                return 0;
+                return 1f;
 
             float stripCount = (referenceStripCount / heightMultiple) * lengthMultiple;
 
-            return Mathf.Max(1, Mathf.RoundToInt(stripCount)); // Ensure minimum of 1
+            return Mathf.Max(stripCount, 1.0f); // Ensure minimum of 1
         }
 
 

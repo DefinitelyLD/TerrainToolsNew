@@ -43,7 +43,7 @@ namespace TerrainTools {
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "TerrainHeightmapTexture", terrainHeightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "HeightmapTexture", terrainHeightmapTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushHeightmapTexture", brushHeightmapTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushMaskTexture", brushShapeTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
@@ -52,7 +52,7 @@ namespace TerrainTools {
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);
-            commandBuffer.SetComputeIntParam(computeShader, "BrushStripCount", brushData.stripCount);
+            commandBuffer.SetComputeFloatParam(computeShader, "BrushStripCount", brushData.stripCount);
 
             commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
             commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);

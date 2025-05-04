@@ -66,7 +66,7 @@ Shader "TerrainTools/HologramShader"
                 float2 boundsCenter = (_Bounds.xy + _Bounds.zw) * 0.5;
 
                 // First, get the hologram's rotation matrix (we'll assume this comes from a uniform variable)
-                float angle = _Angle; // Rotation angle in degrees or radians
+                float angle = radians(_Angle); // Rotation angle in degrees or radians
                 float cosAngle = cos(angle);
                 float sinAngle = sin(angle);
                 

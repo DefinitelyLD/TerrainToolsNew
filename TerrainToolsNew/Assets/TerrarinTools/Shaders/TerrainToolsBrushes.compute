@@ -22,7 +22,6 @@
 #pragma kernel TessellateGridMesh
 
 #define PI 3.14159265358979323846
-#define PATTERN_UV_REDZONE 8.0
 
 RWTexture2D<float4> NormalmapTexture;
 
@@ -58,7 +57,7 @@ float BrushAngle;
 float DeltaTime;
 
 float BrushHeight;
-int BrushStripCount;
+float BrushStripCount;
 
 float TweenStrength;
 
@@ -79,7 +78,7 @@ float TerrainMaskBorder;
 
 float2 RotateUV(float2 uv, float angleDegrees)
 {
-    float angleRadians = radians(angleDegrees);
+    float angleRadians = radians(-angleDegrees);
 
     uv -= 0.5;
 
@@ -95,11 +94,10 @@ float2 RotateUV(float2 uv, float angleDegrees)
     return rotatedUV;
 }
 
-float2 UVFromId(uint3 id, float redZone)
+float2 UVFromId(uint3 id)
 {
     float2 offset = (ActualBrushSize - BrushSize) * 0.5;
-    offset += redZone;
-    float2 uv = (float2(id.xy) - offset) / float2(BrushSize - redZone);
+    float2 uv = (float2(id.xy) - offset) / float2(BrushSize);
     
     return uv;
 }
@@ -107,7 +105,7 @@ float2 UVFromId(uint3 id, float redZone)
 bool IsPointInRotatedBox(float2 boxPosition, int2 boxSize, float boxAngle, int2 target)
 {
     // Convert angle to radians
-    float angleRad = radians(boxAngle);
+    float angleRad = radians(-boxAngle);
     float cosAngle = cos(angleRad);
     float sinAngle = sin(angleRad);
 
@@ -146,7 +144,7 @@ bool IsCulled(uint3 id)
 
 float GetBrushMaskValue(uint3 id)
 {
-    float2 uv = UVFromId(id, 0);
+    float2 uv = UVFromId(id);
     uv = RotateUV(uv, BrushAngle);
     
     float color = BrushMaskTexture.SampleLevel(pointClampBrushMaskTextureSampler, uv, 0);
@@ -274,10 +272,10 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
     float mask = GetBrushMaskValue(id);
     mask = mask > 0.0? 1.0 : 0.0;
    
-    float2 uv = UVFromId(id, PATTERN_UV_REDZONE);
+    float2 uv = UVFromId(id);
     uv = RotateUV(uv, BrushAngle);
     
-    float wave = sqrt(max(sin((uv.x + 0.5) * BrushStripCount * PI * 2.0), 0));
+    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 
@@ -288,13 +286,45 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void RingsBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float mask = GetBrushMaskValue(id);
+    mask = mask > 0.0 ? 1.0 : 0.0;
+   
+    float2 uv = UVFromId(id);
+    uv = RotateUV(uv, BrushAngle);
+    
+    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
+
+    float newHeight = (wave * BrushHeight) * mask;
+
+    newHeight = clamp(newHeight, 0, 0.5);
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]
 void CurveyStripsBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float mask = GetBrushMaskValue(id);
+    mask = mask > 0.0 ? 1.0 : 0.0;
+   
+    float2 uv = UVFromId(id);
+    uv = RotateUV(uv, BrushAngle);
+    
+    float wave = sqrt(max(sin((uv.x + (0.25 * PI)) * BrushStripCount * PI * 2.0), 0));
+
+    float newHeight = (wave * BrushHeight) * mask;
+
+    newHeight = clamp(newHeight, 0, 0.5);
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]
