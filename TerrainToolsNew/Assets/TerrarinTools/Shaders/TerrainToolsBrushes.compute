@@ -196,6 +196,10 @@ void SmoothBrush(uint3 id : SV_DispatchThreadID)
     }
     
     float mask = GetBrushMaskValue(id);
+    if (mask == 0.0)
+    {
+        return;
+    }
     
     float accumulation = 0;
     uint sampleCount = 0;
@@ -248,11 +252,15 @@ void EraseBrush(uint3 id : SV_DispatchThreadID)
         return;
     }
     
-    float currentHeight = BrushHeightmapTexture.Load(int3(id.x, id.y, 0));
     float mask = GetBrushMaskValue(id);
     
-    currentHeight = mask > 0? 0 : currentHeight;
-    OutputBrushHeightmapTexture[id.xy] = currentHeight;
+    if (mask == 0.0)
+    {
+        return;
+    }
+    
+    float newHeight = 0;
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]
@@ -309,11 +317,15 @@ void PatternEraseBrush(uint3 id: SV_DispatchThreadID)
         return;
     }
     
-    float currentHeight = OutputBrushHeightmapTexture[id.xy];
     float mask = GetBrushMaskValue(id);
     
-    currentHeight = mask > 0 ? 0 : currentHeight;
-    OutputBrushHeightmapTexture[id.xy] = currentHeight;
+    if (mask == 0.0)
+    {
+        return;
+    }
+    
+    float newHeight = 0;
+    OutputBrushHeightmapTexture[id.xy] = newHeight;
 }
 
 [numthreads(32, 32, 1)]

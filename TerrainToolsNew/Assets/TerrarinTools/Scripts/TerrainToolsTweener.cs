@@ -31,8 +31,6 @@ namespace TerrainTools {
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "OutputHeightmapTexture", finalWaterTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "TweenStateHeightmap", bufferWaterMask);
 
-            commandBuffer.SetComputeFloatParam(computeShader, "TweenStrength", data.strength * 0.5f);
-
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             commandBuffer.CopyTexture(finalWaterTexture, bufferWaterMask);
         }
