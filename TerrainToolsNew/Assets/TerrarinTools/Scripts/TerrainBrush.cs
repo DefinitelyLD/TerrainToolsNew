@@ -109,6 +109,7 @@ namespace TerrainTools {
             hologramMaterial.SetVector("_TerrainSize", terrainSize);
             hologramMaterial.SetVector("_Bounds", bounds);
             hologramMaterial.SetTexture("_Mask", maskTexture);
+            hologramMaterial.SetFloat("_Angle", brushData.angle);
 
             Graphics.DrawMesh(hologramMesh, terrainPosition, Quaternion.identity, hologramMaterial, terrain.gameObject.layer, Camera.main);
         }

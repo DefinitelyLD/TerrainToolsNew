@@ -24,6 +24,7 @@ Shader "TerrainTools/HologramShader"
 
             float4 _TerrainSize;
             float4 _Bounds;
+            float _Angle;
 
             struct appdata
             {
@@ -61,11 +62,28 @@ Shader "TerrainTools/HologramShader"
             {
                 float2 uv = i.uv;
 
-                if(uv.x < _Bounds.x || uv.x > _Bounds.z || uv.y < _Bounds.y || uv.y > _Bounds.w) {
+                // Calculate the center of the bounding box (_Bounds)
+                float2 boundsCenter = (_Bounds.xy + _Bounds.zw) * 0.5;
+
+                // First, get the hologram's rotation matrix (we'll assume this comes from a uniform variable)
+                float angle = _Angle; // Rotation angle in degrees or radians
+                float cosAngle = cos(angle);
+                float sinAngle = sin(angle);
+                
+                // Create a rotation matrix based on the angle
+                float2x2 rotationMatrix = float2x2(cosAngle, -sinAngle, sinAngle, cosAngle);
+
+                // Rotate the UV coordinates based on the hologram's rotation
+                float2 rotatedUV = mul(rotationMatrix, uv - boundsCenter);  // Rotate around the center
+                rotatedUV += boundsCenter;  // Reposition after rotation
+
+                // Check if the rotated UV is inside the bounds
+                if(rotatedUV.x < _Bounds.x || rotatedUV.x > _Bounds.z || rotatedUV.y < _Bounds.y || rotatedUV.y > _Bounds.w) {
                     discard;
                 }
 
-                float2 innerUV = (uv - _Bounds.xy) / (_Bounds.zw - _Bounds.xy);
+                // Apply the rest of the hologram rendering logic
+                float2 innerUV = (rotatedUV - _Bounds.xy) / (_Bounds.zw - _Bounds.xy);
 
                 float mask = tex2D(_Mask, innerUV);
 

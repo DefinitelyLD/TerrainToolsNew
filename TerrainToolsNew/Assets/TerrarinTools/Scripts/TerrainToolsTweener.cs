@@ -13,6 +13,7 @@ namespace TerrainTools {
 
             var virtualWaterTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
             var finalWaterTexture = context.GetRenderTexture(ContextConstants.FinalWaterMaskTexture);
+            var bufferWaterMask = context.GetRenderTexture(ContextConstants.BufferWaterMaskTexture);
 
             var dispatchSize = context.GetDispatchSize(finalHeightmap.GetSize());
 
@@ -24,10 +25,16 @@ namespace TerrainTools {
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", data.deltaTime);
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, dispatchSize.x, dispatchSize.y, dispatchSize.z);
-
             commandBuffer.CopyTexture(bufferHeightmap, output);
 
-            commandBuffer.CopyTexture(virtualWaterTexture, finalWaterTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "HeightmapTexture", virtualWaterTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "OutputHeightmapTexture", finalWaterTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "TweenStateHeightmap", bufferWaterMask);
+
+            commandBuffer.SetComputeFloatParam(computeShader, "TweenStrength", data.strength * 0.5f);
+
+            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+            commandBuffer.CopyTexture(finalWaterTexture, bufferWaterMask);
         }
     }
 }

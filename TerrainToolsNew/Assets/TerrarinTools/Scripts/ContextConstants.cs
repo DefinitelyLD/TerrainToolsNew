@@ -26,6 +26,7 @@
 
         public const string VirtualWaterMaskTexture = "VirtualWaterMaskTexture";
         public const string FinalWaterMaskTexture = "FinalWaterMaskTexture";
+        public const string BufferWaterMaskTexture = "BufferWaterMaskTexture";
         public const string WaterBrushResultMaskTexture = "WaterBrushMaskResultTexture";
         //public const string WATER_HEIGHTMAP_TEXTURE = "WaterHeightmapTexture";
 

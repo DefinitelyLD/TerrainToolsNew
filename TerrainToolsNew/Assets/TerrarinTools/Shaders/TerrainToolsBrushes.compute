@@ -451,7 +451,7 @@ void Tween(uint3 id : SV_DispatchThreadID)
     
     float newHeight = lerp(currentHeight, targetHeight, DeltaTime * TweenStrength);
     
-    newHeight = clamp(newHeight, 0, 0.5);
+    //newHeight = clamp(newHeight, 0, 0.5);
     OutputHeightmapTexture[id.xy] = newHeight;
 }
 

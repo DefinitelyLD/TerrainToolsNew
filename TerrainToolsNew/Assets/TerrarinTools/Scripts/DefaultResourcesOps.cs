@@ -435,21 +435,23 @@ namespace TerrainTools {
                 waterInstances.WaterExcluder.transform.localScale = Vector3.one;
             }
             if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, 0) ||
-               !Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, 0)) {
+                !Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, 0)) {
 
                 waterInstances.WaterExcluder.transform.position = Vector3.zero;
             }
-            if (!Mathf.Approximately(waterInstances.WaterDeformDecal.transform.localScale.x, terrainSize.x) ||
-                !Mathf.Approximately(waterInstances.WaterDeformDecal.transform.localScale.z, terrainSize.z)) {
-                waterInstances.WaterDeformDecal.transform.localScale = new Vector3(terrainSize.x, 1, terrainSize.z);
+            if (waterInstances.WaterDeformDecal.transform.localScale != terrainSize) {
+                waterInstances.WaterDeformDecal.transform.localScale = terrainSize;
             }
             if (!Mathf.Approximately(waterInstances.WaterDeformDecal.transform.position.x, terrainSize.x * 0.5f) ||
-               !Mathf.Approximately(waterInstances.WaterDeformDecal.transform.position.x, terrainSize.z * 0.5f)) {
+                !Mathf.Approximately(waterInstances.WaterDeformDecal.transform.position.x, terrainSize.z * 0.5f)) {
 
                 waterInstances.WaterDeformDecal.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
             }
+            if(waterInstances.WaterDeformDecal.amplitude != 1) {
+                waterInstances.WaterDeformDecal.amplitude = 1;
+            }
             if (waterInstances.WaterDeformDecal.regionSize != Vector2.one) {
-                //waterInstances.WaterDeformDecal.regionSize = Vector2.one;
+                waterInstances.WaterDeformDecal.regionSize = Vector2.one;
             }
             //--
 
@@ -487,6 +489,19 @@ namespace TerrainTools {
                 context.DestroyComputeBuffer(ContextConstants.VirtualWaterMaskTexture);
                 virtualWaterMaskTexture = context.CreateRenderTexture(ContextConstants.VirtualWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
             }
+
+            //--
+
+            if (context.IsRenderTextureExists(ContextConstants.BufferWaterMaskTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.BufferWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+
+            var bufferWaterMaskTexture = context.GetRenderTexture(ContextConstants.BufferWaterMaskTexture);
+
+            if (virtualWaterMaskTexture.CheckSize(heightmapSize) == false) {
+                context.DestroyComputeBuffer(ContextConstants.BufferWaterMaskTexture);
+                bufferWaterMaskTexture = context.CreateRenderTexture(ContextConstants.BufferWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
             //--
 
             if (context.IsTexture2DExists(ContextConstants.APIGetHeightTexture) == false) {
@@ -510,6 +525,8 @@ namespace TerrainTools {
             }
             waterDeformMaterial.SetTexture("_Heightmap", terrain.terrainData.heightmapTexture);
             waterDeformMaterial.SetTexture("_Mask", finalWaterMaskTexture);
+            float waterHeightOffset = 1f / terrainSize.y;
+            waterDeformMaterial.SetFloat("_Offset", waterHeightOffset);
 
 
             //--
@@ -529,6 +546,7 @@ namespace TerrainTools {
                     debug.SetMesh("Water Excluder Mesh", context.GetMesh(ContextConstants.WaterExclusionMesh));
                 }
 
+                debug.SetTexture("Buffer Watermask Texture", bufferWaterMaskTexture);
                 debug.SetTexture("Virtual Water Mask Result Texture", virtualWaterMaskTexture);
                 debug.SetTexture("Final Water Mask Result Texture", finalWaterMaskTexture);
                 debug.SetTexture("Water Mask Brush Result Texture", waterBrushMaskResultTexture);
