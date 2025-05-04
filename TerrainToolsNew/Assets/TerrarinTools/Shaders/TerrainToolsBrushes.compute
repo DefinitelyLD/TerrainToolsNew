@@ -67,6 +67,9 @@ float2 GridHightmapTexelPosition;
 uint2 GridCellCount;
 float GridCellSize;
 
+uint UseTessellationMask;
+Texture2D<float> TessellationMaskTexture;
+
 RWStructuredBuffer<float3> OutputMeshVertices;
 RWStructuredBuffer<uint> OutputMeshIndices;
 RWStructuredBuffer<float2> OutputMeshUVs;
@@ -473,16 +476,7 @@ void TessellateGridMesh(uint3 id: SV_DispatchThreadID)
     float v = (float) id.y / GridCellCount.y;
     
     OutputMeshUVs[vertexIndex] = float2(u, v);
-
-    // Heightmap texel coordinates
-    uint2 texelCoord = GridHightmapTexelPosition + uint2(id.x, id.y);
-
-    // Sample height value
-    float height = HeightmapTexture.Load(int3(texelCoord, 0));
-    height *= TerrainSize.y * 2.0;
-    
-
-    OutputMeshVertices[vertexIndex] = float3(xPos, height, zPos);
+    OutputMeshVertices[vertexIndex] = float3(xPos, 0, zPos);
 
     // Skip triangle generation if on last row/column
     if (id.x >= GridCellCount.x || id.y >= GridCellCount.y)
@@ -497,6 +491,22 @@ void TessellateGridMesh(uint3 id: SV_DispatchThreadID)
     uint i2 = baseVertex + gridWidth;
     uint i3 = baseVertex + gridWidth + 1;
 
+    if (UseTessellationMask == 1)
+    {
+        float mask = TessellationMaskTexture.Load(int3(id.x, id.y, 0));
+        if (mask > 0.0)
+        {
+            OutputMeshIndices[baseIndex + 0] = i0;
+            OutputMeshIndices[baseIndex + 1] = i1;
+            OutputMeshIndices[baseIndex + 2] = i2;
+
+            OutputMeshIndices[baseIndex + 3] = i1;
+            OutputMeshIndices[baseIndex + 4] = i3;
+            OutputMeshIndices[baseIndex + 5] = i2;
+            
+            return;
+        }
+    }
     OutputMeshIndices[baseIndex + 0] = i0;
     OutputMeshIndices[baseIndex + 1] = i2;
     OutputMeshIndices[baseIndex + 2] = i1;

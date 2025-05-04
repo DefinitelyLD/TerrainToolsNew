@@ -276,6 +276,7 @@ namespace TerrainTools {
 
 
             var mesh = new Mesh();
+            mesh.name = name;
             if (supportLargeIndcies) {
                 mesh.indexFormat = IndexFormat.UInt32;
             }

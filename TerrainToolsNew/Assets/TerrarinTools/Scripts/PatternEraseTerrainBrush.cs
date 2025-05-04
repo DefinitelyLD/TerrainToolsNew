@@ -17,8 +17,8 @@ namespace TerrainTools {
             var terrain = context.GetTerrain();
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
 
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
-            var patternTexture = context.GetRenderTexture(ContextConstants.PATTERN_TEXTURE);
+            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
+            var patternTexture = context.GetRenderTexture(ContextConstants.PatternTexture);
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
@@ -40,7 +40,7 @@ namespace TerrainTools {
             var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
             var terrainHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
+            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
             var brushData = context.GetBrushData();
 
@@ -71,8 +71,8 @@ namespace TerrainTools {
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.PatternEraseBrush, stripBrushDispatchSize.x, stripBrushDispatchSize.y, stripBrushDispatchSize.z);
 
-            var patternTexture = context.GetRenderTexture(ContextConstants.PATTERN_TEXTURE);
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
+            var patternTexture = context.GetRenderTexture(ContextConstants.PatternTexture);
+            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
             var brushData = context.GetBrushData();
             var heightmapSize = patternTexture.GetSize();

@@ -10,6 +10,10 @@ namespace TerrainTools {
         private const string HOLOGRAM_MESH_INDICIES_BUFFER = "HologramMeshIndicesBuffer";
         private const string HOLOGRAM_MESH_UVS_BUFFER = "HologramMeshUVsBuffer";
 
+        private const string WATER_MESH_VERTICES_BUFFER = "WaterMeshVerticesBuffer";
+        private const string WATER_MESH_INDICIES_BUFFER = "WaterMeshIndicesBuffer";
+        private const string WATER_MESH_UVS_BUFFER = "WaterMeshUVsBuffer";
+
         public readonly void CreateAndResizeDefaultResources(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
@@ -35,9 +39,13 @@ namespace TerrainTools {
             var actualBrushSize = brushData.actualBrushSize;
 
             var hologramMeshGridCellCount = new Vector2Int(heightmapSize.x + 1, heightmapSize.y + 1);
+            var waterExclusionMeshGridCellCount = new Vector2Int(heightmapSize.x, heightmapSize.y);
 
             int hologramVerticesCount = (hologramMeshGridCellCount.x + 1) * (hologramMeshGridCellCount.y + 1);
             int hologramIndicesCount = hologramMeshGridCellCount.x * hologramMeshGridCellCount.y * 6;
+
+            int waterExclusionVerticesCount = (waterExclusionMeshGridCellCount.x + 1) * (waterExclusionMeshGridCellCount.y + 1);
+            int waterExclusionIndicesCount = waterExclusionMeshGridCellCount.x * waterExclusionMeshGridCellCount.y * 6;
 
             if (context.IsComputeBufferExists(HOLOGRAM_MESH_VERTICES_BUFFER)) {
                 Debug.Assert(context.IsComputeBufferExists(HOLOGRAM_MESH_UVS_BUFFER));
@@ -64,7 +72,7 @@ namespace TerrainTools {
                     context.CreateMesh(ContextConstants.HologramMesh, vertices, indices, uvs, true);
 
                     timer.Stop();
-                    TerrainToolsUtils.Log($"Time took for CPU hologram mesh generation:  {timer.ElapsedMilliseconds} ms" +
+                    TerrainToolsUtils.Log($"Time took for CPU to build hologram mesh:  {timer.ElapsedMilliseconds} ms" +
                         $" | {(timer.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                         $" | {(timer.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
@@ -72,6 +80,51 @@ namespace TerrainTools {
 
             }
 
+            //--
+
+            if (context.IsComputeBufferExists(WATER_MESH_VERTICES_BUFFER)) {
+                Debug.Assert(context.IsComputeBufferExists(WATER_MESH_UVS_BUFFER));
+                Debug.Assert(context.IsComputeBufferExists(WATER_MESH_INDICIES_BUFFER));
+
+                // creating water exclusion mesh
+                if (context.IsMeshsExists(ContextConstants.WaterExclusionMesh) == false) {
+                    var timer = new Stopwatch();
+
+                    timer.Start();
+
+                    var indices = new int[waterExclusionIndicesCount];
+                    var uvs = new Vector2[waterExclusionVerticesCount];
+                    var vertices = new Vector3[waterExclusionVerticesCount];
+
+                    var rawVerticesBuffer = context.GetComputeBuffer(WATER_MESH_VERTICES_BUFFER);
+                    var rawIndicesBuffer = context.GetComputeBuffer(WATER_MESH_INDICIES_BUFFER);
+                    var rawUVsBuffer = context.GetComputeBuffer(WATER_MESH_UVS_BUFFER);
+
+                    rawIndicesBuffer.GetData(indices);
+                    rawUVsBuffer.GetData(uvs);
+                    rawVerticesBuffer.GetData(vertices);
+
+                    var mesh = context.CreateMesh(ContextConstants.WaterExclusionMesh, vertices, indices, uvs, true);
+
+                    timer.Stop();
+                    TerrainToolsUtils.Log($"Time took for CPU to build water exclusion mesh:  {timer.ElapsedMilliseconds} ms" +
+                        $" | {(timer.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                        $" | {(timer.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+                    if (context.IsDebugMode()) {
+                        var debug = context.GetDebugView();
+                        var obj = new GameObject("Water Exluder Mesh");
+                        obj.transform.SetParent(debug.transform);
+
+                        obj.AddComponent<MeshFilter>().mesh = mesh;
+                    }
+
+                    waterInstances.WaterExcluder.SetExclusionMesh(mesh);
+                }
+
+            }
+
+            //--
             if (context.IsComputeBufferExists(HOLOGRAM_MESH_VERTICES_BUFFER) == false) {
 
                 context.CreateComputeBuffer(HOLOGRAM_MESH_VERTICES_BUFFER, hologramVerticesCount, Marshal.SizeOf<Vector3>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
@@ -91,17 +144,27 @@ namespace TerrainTools {
             }
             var hologramUvsBuffer = context.GetComputeBuffer(HOLOGRAM_MESH_UVS_BUFFER);
             //--
-            if(context.IsTexture2DExists(ContextConstants.APIGetHeightTexture) == false) {
-                context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
+
+
+
+            if (context.IsComputeBufferExists(WATER_MESH_VERTICES_BUFFER) == false) {
+
+                context.CreateComputeBuffer(WATER_MESH_VERTICES_BUFFER, waterExclusionVerticesCount, Marshal.SizeOf<Vector3>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
             }
+            var waterVerticesBuffer = context.GetComputeBuffer(WATER_MESH_VERTICES_BUFFER);
+            //--
 
-            var apiGetHeightTexture = context.GetTexture2D(ContextConstants.APIGetHeightTexture);
+            if (context.IsComputeBufferExists(WATER_MESH_INDICIES_BUFFER) == false) {
 
-            if(apiGetHeightTexture.CheckSize(heightmapSize) == false) {
-                context.DestroyTexture2D(ContextConstants.APIGetHeightTexture);
-
-                apiGetHeightTexture = context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
+                context.CreateComputeBuffer(WATER_MESH_INDICIES_BUFFER, waterExclusionIndicesCount, Marshal.SizeOf<int>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
             }
+            var waterIndiciesBuffer = context.GetComputeBuffer(WATER_MESH_INDICIES_BUFFER);
+            //--
+            if (context.IsComputeBufferExists(WATER_MESH_UVS_BUFFER) == false) {
+
+                context.CreateComputeBuffer(WATER_MESH_UVS_BUFFER, waterExclusionVerticesCount, Marshal.SizeOf<Vector2>(), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            }
+            var waterUVsBuffer = context.GetComputeBuffer(WATER_MESH_UVS_BUFFER);
             //--
 
             // resizing brush mask
@@ -279,7 +342,7 @@ namespace TerrainTools {
 
 
             if (context.IsMeshsExists(ContextConstants.HologramMesh) == false) {
-                var cellSize = terrainSize.x / heightmapSize.x;
+                var cellSize = terrainSize.x / hologramMeshGridCellCount.x;
 
                 commandBuffer.SetComputeFloatParams(computeShader, "GridMeshWorldPosition", 0, 0);
                 commandBuffer.SetComputeFloatParams(computeShader, "HeightmapTexelPosition", 0, 0);
@@ -287,21 +350,44 @@ namespace TerrainTools {
                 commandBuffer.SetComputeFloatParams(computeShader, "GridCellSize", cellSize, cellSize);
                 commandBuffer.SetComputeFloatParams(computeShader, "TerrainSize", terrainSize.x, terrainSize.y, terrainSize.z);
 
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "HeightmapTexture", virtualTerrainHeightmap);
+                commandBuffer.SetComputeIntParam(computeShader, "UseTessellationMask", 0);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "TessellationMaskTexture", maskTexture);
 
                 commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshVertices", hologramVerticesBuffer);
                 commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshIndices", hologramIndicesBuffer);
                 commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshUVs", hologramUvsBuffer);
 
-                var dispatchSize = context.GetDispatchSize(heightmapSize);
+                var dispatchSize = context.GetDispatchSize(hologramMeshGridCellCount);
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TessellateGridMesh, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             }
             //--
-            if (context.IsRenderTextureExists(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE) == false) {
-                context.CreateRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE, brushData.actualBrushSize, heightmapFormat, true);
+
+            if (context.IsMeshsExists(ContextConstants.WaterExclusionMesh) == false) {
+                var cellSize = terrainSize.x / waterExclusionMeshGridCellCount.x;
+
+                commandBuffer.SetComputeFloatParams(computeShader, "GridMeshWorldPosition", 0, 0);
+                commandBuffer.SetComputeFloatParams(computeShader, "HeightmapTexelPosition", 0, 0);
+                commandBuffer.SetComputeIntParams(computeShader, "GridCellCount", waterExclusionMeshGridCellCount.x, waterExclusionMeshGridCellCount.y);
+                commandBuffer.SetComputeFloatParams(computeShader, "GridCellSize", cellSize, cellSize);
+                commandBuffer.SetComputeFloatParams(computeShader, "TerrainSize", terrainSize.x, terrainSize.y, terrainSize.z);
+
+                commandBuffer.SetComputeIntParam(computeShader, "UseTessellationMask", 1);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "TessellationMaskTexture", maskTexture);
+
+                commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshVertices", waterVerticesBuffer);
+                commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshIndices", waterIndiciesBuffer);
+                commandBuffer.SetComputeBufferParam(computeShader, (int)KernelIndicies.TessellateGridMesh, "OutputMeshUVs", waterUVsBuffer);
+
+                var dispatchSize = context.GetDispatchSize(waterExclusionMeshGridCellCount);
+                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TessellateGridMesh, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             }
 
-            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
+            //--
+            if (context.IsRenderTextureExists(ContextConstants.PatternBrushHeightmapResultTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture, brushData.actualBrushSize, heightmapFormat, true);
+            }
+
+            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
             if (patternBrushHeightmapResultTexture.CheckSize(brushData.actualBrushSize) == false) {
                 if (!brushData.hasResourceFencePassed) {
@@ -309,16 +395,16 @@ namespace TerrainTools {
                     return;
                 }
 
-                context.DestroyRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
-                patternBrushHeightmapResultTexture = context.CreateRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE, brushData.actualBrushSize, heightmapFormat, true);
+                context.DestroyRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
+                patternBrushHeightmapResultTexture = context.CreateRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture, brushData.actualBrushSize, heightmapFormat, true);
             }
             //--
 
-            if (context.IsRenderTextureExists(ContextConstants.PATTERN_TEXTURE) == false) {
-                context.CreateRenderTexture(ContextConstants.PATTERN_TEXTURE, heightmapSize, heightmapFormat, false);
+            if (context.IsRenderTextureExists(ContextConstants.PatternTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.PatternTexture, heightmapSize, heightmapFormat, false);
             }
 
-            var patternTexture = context.GetRenderTexture(ContextConstants.PATTERN_TEXTURE);
+            var patternTexture = context.GetRenderTexture(ContextConstants.PatternTexture);
 
             if (patternTexture.CheckSize(heightmapSize) == false) {
                 if (!brushData.hasResourceFencePassed) {
@@ -326,8 +412,8 @@ namespace TerrainTools {
                     return;
                 }
 
-                context.DestroyRenderTexture(ContextConstants.PATTERN_TEXTURE);
-                patternTexture = context.CreateRenderTexture(ContextConstants.PATTERN_TEXTURE, heightmapSize, heightmapFormat, false);
+                context.DestroyRenderTexture(ContextConstants.PatternTexture);
+                patternTexture = context.CreateRenderTexture(ContextConstants.PatternTexture, heightmapSize, heightmapFormat, false);
             }
             //--
 
@@ -344,14 +430,14 @@ namespace TerrainTools {
 
                 waterInstances.WaterSurface.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
             }
-            if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.localScale.x, terrainSize.x) ||
-                !Mathf.Approximately(waterInstances.WaterExcluder.transform.localScale.z, terrainSize.z)) {
-                waterInstances.WaterExcluder.transform.localScale = new Vector3(terrainSize.x, 1, terrainSize.z);
+            if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.localScale.x, 1) ||
+                !Mathf.Approximately(waterInstances.WaterExcluder.transform.localScale.z, 1)) {
+                waterInstances.WaterExcluder.transform.localScale = Vector3.one;
             }
-            if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, terrainSize.x * 0.5f) ||
-               !Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, terrainSize.z * 0.5f)) {
+            if (!Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, 0) ||
+               !Mathf.Approximately(waterInstances.WaterExcluder.transform.position.x, 0)) {
 
-                waterInstances.WaterExcluder.transform.position = new Vector3(terrainSize.x * 0.5f, terrain.transform.position.y, terrainSize.z * 0.5f);
+                waterInstances.WaterExcluder.transform.position = Vector3.zero;
             }
             if (!Mathf.Approximately(waterInstances.WaterDeformDecal.transform.localScale.x, terrainSize.x) ||
                 !Mathf.Approximately(waterInstances.WaterDeformDecal.transform.localScale.z, terrainSize.z)) {
@@ -364,9 +450,62 @@ namespace TerrainTools {
             }
             //--
 
-            if (context.IsHeightmapCompositiveExists(ContextConstants.PATTERN_TEXTURE) == false) {
-                context.RegisterHeightmapCompositive(ContextConstants.PATTERN_TEXTURE);
+            if (context.IsRenderTextureExists(ContextConstants.WaterBrushResultMaskTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.actualBrushSize, GraphicsFormat.R32_SFloat, true);
             }
+
+            var waterBrushMaskResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
+
+            if (waterBrushMaskResultTexture.CheckSize(brushData.actualBrushSize) == false) {
+                context.DestroyComputeBuffer(ContextConstants.WaterBrushResultMaskTexture);
+                waterBrushMaskResultTexture = context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.actualBrushSize, GraphicsFormat.R32_SFloat, true);
+            }
+            //--
+
+            if (context.IsRenderTextureExists(ContextConstants.FinalWaterMaskTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.FinalWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+
+            var finalWaterMaskTexture = context.GetRenderTexture(ContextConstants.FinalWaterMaskTexture);
+
+            if (finalWaterMaskTexture.CheckSize(heightmapSize) == false) {
+                context.DestroyComputeBuffer(ContextConstants.FinalWaterMaskTexture);
+                finalWaterMaskTexture = context.CreateRenderTexture(ContextConstants.FinalWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+            //--
+
+            if (context.IsRenderTextureExists(ContextConstants.VirtualWaterMaskTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.VirtualWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+
+            var virtualWaterMaskTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
+
+            if (virtualWaterMaskTexture.CheckSize(heightmapSize) == false) {
+                context.DestroyComputeBuffer(ContextConstants.VirtualWaterMaskTexture);
+                virtualWaterMaskTexture = context.CreateRenderTexture(ContextConstants.VirtualWaterMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+            //--
+
+            if (context.IsTexture2DExists(ContextConstants.APIGetHeightTexture) == false) {
+                context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
+            }
+
+            var apiGetHeightTexture = context.GetTexture2D(ContextConstants.APIGetHeightTexture);
+
+            if (apiGetHeightTexture.CheckSize(heightmapSize) == false) {
+                context.DestroyTexture2D(ContextConstants.APIGetHeightTexture);
+
+                apiGetHeightTexture = context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
+            }
+            //--
+
+
+            //--
+
+            if (context.IsHeightmapCompositiveExists(ContextConstants.PatternTexture) == false) {
+                context.RegisterHeightmapCompositive(ContextConstants.PatternTexture);
+            }
+            //--
 
             if (context.IsDebugMode()) {
                 var debug = context.GetDebugView();
@@ -374,6 +513,13 @@ namespace TerrainTools {
                 if (context.IsMeshsExists(ContextConstants.HologramMesh)) {
                     debug.SetMesh("Hologram Mesh", context.GetMesh(ContextConstants.HologramMesh));
                 }
+                if (context.IsMeshsExists(ContextConstants.WaterExclusionMesh)) {
+                    debug.SetMesh("Water Excluder Mesh", context.GetMesh(ContextConstants.WaterExclusionMesh));
+                }
+
+                debug.SetTexture("Virtual Water Mask Result Texture", virtualWaterMaskTexture);
+                debug.SetTexture("Final Water Mask Result Texture", finalWaterMaskTexture);
+                debug.SetTexture("Water Mask Brush Result Texture", waterBrushMaskResultTexture);
 
                 debug.SetTexture("Pattern Texture", patternTexture);
                 debug.SetTexture("Pattern BrushHeightmap Result Texture", patternBrushHeightmapResultTexture);
