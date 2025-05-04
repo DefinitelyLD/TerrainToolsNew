@@ -107,8 +107,8 @@ namespace TerrainTools {
                 var texture = context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, brushData.brushSize, GraphicsFormat.R32_SFloat, false);
 
                 // resizing brush mask
-                var brushTexture = context.GetCurrentBrushShape();
-                commandBuffer.Blit(brushTexture, texture, blitMaterial);
+                //var shape = context.GetCurrentBrushShape();
+                //commandBuffer.Blit(shape, texture, blitMaterial);
             }
 
             var brushMaskTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
@@ -295,6 +295,48 @@ namespace TerrainTools {
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TessellateGridMesh, dispatchSize.x, dispatchSize.y, dispatchSize.z);
             }
             //--
+            if (context.IsRenderTextureExists(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE) == false) {
+                context.CreateRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE, brushData.actualBrushSize, heightmapFormat, true);
+            }
+
+            var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
+
+            if (patternBrushHeightmapResultTexture.CheckSize(brushData.actualBrushSize) == false) {
+                if (!brushData.hasResourceFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
+                }
+
+                context.DestroyRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
+                patternBrushHeightmapResultTexture = context.CreateRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE, brushData.actualBrushSize, heightmapFormat, true);
+            }
+            //--
+
+            if (context.IsRenderTextureExists(ContextConstants.PATTERN_TEXTURE) == false) {
+                context.CreateRenderTexture(ContextConstants.PATTERN_TEXTURE, heightmapSize, heightmapFormat, false);
+            }
+
+            var patternTexture = context.GetRenderTexture(ContextConstants.PATTERN_TEXTURE);
+
+            if (patternTexture.CheckSize(heightmapSize) == false) {
+                if (!brushData.hasResourceFencePassed) {
+                    TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
+                    return;
+                }
+
+                context.DestroyRenderTexture(ContextConstants.PATTERN_TEXTURE);
+                patternTexture = context.CreateRenderTexture(ContextConstants.PATTERN_TEXTURE, heightmapSize, heightmapFormat, false);
+            }
+            //--
+
+            var brushTexture = context.GetCurrentBrushShape();
+            commandBuffer.Blit(brushTexture, brushMaskTexture, blitMaterial);
+            //--
+
+
+            if (context.IsHeightmapCompositiveExists(ContextConstants.PATTERN_TEXTURE) == false) {
+                context.RegisterHeightmapCompositive(ContextConstants.PATTERN_TEXTURE);
+            }
 
             if (context.IsDebugMode()) {
                 var debug = context.GetDebugView();
@@ -303,7 +345,10 @@ namespace TerrainTools {
                     debug.SetMesh("Hologram Mesh", context.GetMesh(ContextConstants.HologramMesh));
                 }
 
-                //debug.SetTexture("Unity Terrain Holes Texture: ", terrain.terrainData.holesTexture);
+                debug.SetTexture("Pattern Texture", patternTexture);
+                debug.SetTexture("Pattern BrushHeightmap Result Texture", patternBrushHeightmapResultTexture);
+
+                debug.SetTexture("Unity Terrain Holes Texture: ", terrain.terrainData.holesTexture);
 
                 debug.SetTexture("API Get Height", apiGetHeightTexture);
                 debug.SetTexture("Buffer Normalmap", bufferNormalmapTexture);

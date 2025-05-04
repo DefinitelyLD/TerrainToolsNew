@@ -12,7 +12,8 @@
 #pragma kernel PatternEraseBrush
 
 #pragma kernel PaintBrush
-#pragma kernel WaterBrush
+#pragma kernel WaterRaiseBrush
+#pragma kernel WaterLowerBrush
 
 #pragma kernel MaskHeightmap
 #pragma kernel Compose
@@ -300,7 +301,16 @@ void DoubleSpiralBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32,32,1)]
 void PatternEraseBrush(uint3 id: SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
     
+    float currentHeight = OutputBrushHeightmapTexture[id.xy];
+    float mask = GetBrushMaskValue(id);
+    
+    currentHeight = mask > 0 ? 0 : currentHeight;
+    OutputBrushHeightmapTexture[id.xy] = currentHeight;
 }
 
 [numthreads(32, 32, 1)]
@@ -310,10 +320,17 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(32, 32, 1)]
-void WaterBrush(uint3 id : SV_DispatchThreadID)
+void WaterRaiseBrush(uint3 id : SV_DispatchThreadID)
 {
     
 }
+
+[numthreads(32, 32, 1)]
+void WaterLowerBrush(uint3 id : SV_DispatchThreadID)
+{
+    
+}
+
 
 [numthreads(32, 32, 1)]
 void MaskHeightmap(uint3 id : SV_DispatchThreadID)

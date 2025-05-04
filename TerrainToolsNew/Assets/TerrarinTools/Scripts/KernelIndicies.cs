@@ -14,7 +14,8 @@
         PatternEraseBrush,
 
         PaintBrush,
-        WaterBrush,
+        WaterRaiseBrush,
+        WaterLowerBrush,
 
         MaskHeightmap,
         Compose,

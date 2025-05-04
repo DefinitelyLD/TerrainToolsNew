@@ -1,11 +1,9 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace TerrainTools {
-
     [TerrainBrush]
-    public sealed class StripsTerrainBrush : TerrainBrush {
+    public class PatternEraseTerrainBrush : TerrainBrush {
         public override BrushType GetBrushType() {
             return BrushType.Heightmap;
         }
@@ -37,7 +35,6 @@ namespace TerrainTools {
 
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
-            var brushData = context.GetBrushData();
 
             var brushHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
             var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
@@ -45,10 +42,12 @@ namespace TerrainTools {
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "TerrainHeightmapTexture", terrainHeightmapTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushHeightmapTexture", brushHeightmapTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushMaskTexture", brushShapeTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
+            var brushData = context.GetBrushData();
+
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.PatternEraseBrush, "TerrainHeightmapTexture", terrainHeightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.PatternEraseBrush, "BrushHeightmapTexture", brushHeightmapTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.PatternEraseBrush, "BrushMaskTexture", brushShapeTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.PatternEraseBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
 
             commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
@@ -70,7 +69,7 @@ namespace TerrainTools {
 
             var stripBrushDispatchSize = context.GetDispatchSize();
 
-            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.StripsBrush, stripBrushDispatchSize.x, stripBrushDispatchSize.y, stripBrushDispatchSize.z);
+            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.PatternEraseBrush, stripBrushDispatchSize.x, stripBrushDispatchSize.y, stripBrushDispatchSize.z);
 
             var patternTexture = context.GetRenderTexture(ContextConstants.PATTERN_TEXTURE);
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE);

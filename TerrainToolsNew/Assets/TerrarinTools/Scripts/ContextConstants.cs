@@ -20,5 +20,8 @@
         public const string HologramMesh = "HologramMesh";
 
         public const string APIGetHeightTexture = "APIGetHeightTexture";
+
+        public const string PATTERN_TEXTURE = "PatternTexture";
+        public const string PATTERN_BRUSH_HEIGHTMAP_RESULT_TEXTURE = "PatternBrushTexture";
     }
 }

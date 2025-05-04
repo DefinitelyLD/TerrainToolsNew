@@ -13,11 +13,6 @@ namespace TerrainTools {
 
             var brushData = context.GetBrushData();
 
-            var brushMaskTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-
-            var brushTexture = context.GetCurrentBrushShape();
-            commandBuffer.Blit(brushTexture, brushMaskTexture, blitMaterial);
-
             var terrain = context.GetTerrain();
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
             var terrainHeightmap = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);

@@ -401,5 +401,9 @@ namespace TerrainTools {
 
             return m_buffers[name];
         }
+
+        public Material GetWaterDeformDecalMaterial() {
+            return m_resources.WaterDeformDecalMaterial;
+        }
     }
 }

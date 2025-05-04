@@ -7,14 +7,16 @@
         Flatten,
         Erase,
 
+        RaiseWater,
+        LowerWater,
         Paint,
 
         Stripes,
         CurveyStripes,
-
         Spiral,
         DoubleSpiral,
-
         Rings,
+
+        PatternEraser
     }
 }

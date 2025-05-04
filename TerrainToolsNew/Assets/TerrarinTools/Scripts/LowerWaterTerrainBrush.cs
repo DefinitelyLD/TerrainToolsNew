@@ -2,7 +2,7 @@
 
 namespace TerrainTools {
     [TerrainBrush]
-    public sealed class LowerWaterBrush : TerrainBrush {
+    public sealed class LowerWaterTerrainBrush : TerrainBrush {
         public override BrushType GetBrushType() {
             throw new NotImplementedException();
         }
