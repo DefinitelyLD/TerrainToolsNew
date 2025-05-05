@@ -264,8 +264,9 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
     mask = mask > 0.0? 1.0 : 0.0;
     
     float2 uv = GetUV(id);
+    uv.y = clamp(uv.y, 0, 1);
     
-    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
+    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * (BrushStripCount + 0.5) * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 
@@ -285,8 +286,9 @@ void RingsBrush(uint3 id : SV_DispatchThreadID)
     mask = mask > 0.0 ? 1.0 : 0.0;
     
     float2 uv = GetUV(id);
+    uv.y = clamp(uv.y, 0, 1);
     
-    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
+    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * (BrushStripCount + 0.5) * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 

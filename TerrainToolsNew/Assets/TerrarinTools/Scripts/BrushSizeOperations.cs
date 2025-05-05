@@ -21,8 +21,11 @@ namespace TerrainTools {
                 return 1f;
 
             float stripCount = (referenceStripCount / heightMultiple) * lengthMultiple;
+            if((int)stripCount % 2 == 0) {
+                stripCount++;
+            }
 
-            return Mathf.Max(stripCount, 1.0f); // Ensure minimum of 1
+            return Mathf.Max((int)stripCount, 1.0f); // Ensure minimum of 1
         }
 
 
