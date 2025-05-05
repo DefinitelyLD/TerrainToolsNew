@@ -4,6 +4,8 @@ using UnityEngine;
 namespace TerrainTools {
     [TerrainBrush]
     public sealed class RingsTerrainBrush : TerrainBrush {
+        private bool m_editing = false;
+
         public override BrushType GetBrushType() {
             return BrushType.Heightmap;
         }
@@ -62,10 +64,14 @@ namespace TerrainTools {
             commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
             commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);
             commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.actualBrushSize.x, brushData.actualBrushSize.y);
+
+            m_editing = true;
         }
 
         public override void OnBrushUp(IBrushContext context) {
             m_angle = -1;
+
+            m_editing = false;
         }
 
         public override void OnBrushUpdate(IBrushContext context) {
@@ -137,7 +143,9 @@ namespace TerrainTools {
             hologramMaterial.SetVector("_TerrainSize", terrainSize);
             hologramMaterial.SetVector("_Bounds", bounds);
             hologramMaterial.SetTexture("_Mask", maskTexture);
-            hologramMaterial.SetFloat("_Angle", m_angle);
+
+            var angle = m_editing ? m_angle : brushData.angle;
+            hologramMaterial.SetFloat("_Angle", angle);
 
             Graphics.DrawMesh(hologramMesh, terrainPosition, Quaternion.identity, hologramMaterial, terrain.gameObject.layer, Camera.main);
         }
