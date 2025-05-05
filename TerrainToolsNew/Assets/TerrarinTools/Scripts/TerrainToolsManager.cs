@@ -102,6 +102,7 @@ namespace TerrainTools {
             var brushStripeCount = brushSizeOps.CalculateStripCount(m_brushSize, m_brushHeight);
 
             var newBrushData = new BrushData();
+            newBrushData.userBrushSize = m_brushSize;
             newBrushData.brushSize = texelBrushSize;
             newBrushData.brushHeight = gpuBrushHeight;
             newBrushData.angle = m_brushAngle;
@@ -180,6 +181,7 @@ namespace TerrainTools {
             var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
 
             newBrushData.brushPosition = brushPosition;
+            newBrushData.pointerPosition = pointerTerrainPos;
             m_context.UpdateData(newBrushData);
 
             m_stopwatch.Reset();

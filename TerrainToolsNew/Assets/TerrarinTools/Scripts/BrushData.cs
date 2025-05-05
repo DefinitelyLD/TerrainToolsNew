@@ -2,6 +2,9 @@
 
 namespace TerrainTools {
     public struct BrushData {
+        public Vector2Int userBrushSize;
+        public Vector3 pointerPosition;
+
         public Vector2Int brushPosition;
         public Vector2Int brushSize;
         public float angle;
