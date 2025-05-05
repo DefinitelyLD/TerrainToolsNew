@@ -86,8 +86,10 @@ Shader "TerrainTools/HologramShader"
                 float2 innerUV = (rotatedUV - _Bounds.xy) / (_Bounds.zw - _Bounds.xy);
 
                 float mask = tex2D(_Mask, innerUV);
+                float alpha = 0.2 * mask;
+                alpha = alpha > 0.0? 0.2 : 0.0;
 
-                return float4(i.height, 1 - i.height, 1 , 0.2 * mask);
+                return float4(i.height, 1 - i.height, 1 , alpha);
             }
             ENDCG
         }

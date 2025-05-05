@@ -76,32 +76,6 @@ RWStructuredBuffer<float2> OutputMeshUVs;
 float TerrainMaskBaseHeight;
 float TerrainMaskBorder;
 
-float2 RotateUV(float2 uv, float angleDegrees)
-{
-    float angleRadians = radians(-angleDegrees);
-
-    uv -= 0.5;
-
-    float cosA = cos(angleRadians);
-    float sinA = sin(angleRadians);
-
-    float2 rotatedUV;
-    rotatedUV.x = uv.x * cosA - uv.y * sinA;
-    rotatedUV.y = uv.x * sinA + uv.y * cosA;
-
-    rotatedUV += 0.5;
-
-    return rotatedUV;
-}
-
-float2 UVFromId(uint3 id)
-{
-    float2 offset = (ActualBrushSize - BrushSize) * 0.5;
-    float2 uv = (float2(id.xy) - offset) / float2(BrushSize);
-    
-    return uv;
-}
-
 bool IsPointInRotatedBox(float2 boxPosition, int2 boxSize, float boxAngle, int2 target)
 {
     // Convert angle to radians
@@ -142,10 +116,27 @@ bool IsCulled(uint3 id)
     return false;
 }
 
+float2 GetUV(uint3 id)
+{
+    // tranlating origin to the centre
+    float2 pin = (float2) id - (ActualBrushSize * 0.5);
+
+    // removing the current rotation or angle, on the texel.
+    float mag = sqrt(pow(pin.x, 2.0) + pow(pin.y, 2.0));
+    float theta = atan2(pin.y, pin.x) - radians(-BrushAngle);
+    // texels at 0 degree rotation, and translating origin back to top left.
+    float newX = mag * cos(theta) + (BrushSize.x * 0.5);
+    float newY = mag * sin(theta) + (BrushSize.y * 0.5);
+
+    // 0 - 1, ranging value, to sample sinosidal wave. its the texel position relative to its max or last position.
+    float2 uv = float2(newX / (float) BrushSize.x, newY / (float) BrushSize.y);
+    
+    return uv;
+}
+
 float GetBrushMaskValue(uint3 id)
 {
-    float2 uv = UVFromId(id);
-    uv = RotateUV(uv, BrushAngle);
+    float2 uv = GetUV(id);
     
     float color = BrushMaskTexture.SampleLevel(pointClampBrushMaskTextureSampler, uv, 0);
     return color;
@@ -268,12 +259,11 @@ void StripsBrush(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    
+     
     float mask = GetBrushMaskValue(id);
     mask = mask > 0.0? 1.0 : 0.0;
-   
-    float2 uv = UVFromId(id);
-    uv = RotateUV(uv, BrushAngle);
+    
+    float2 uv = GetUV(id);
     
     float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
 
@@ -290,12 +280,11 @@ void RingsBrush(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    
+     
     float mask = GetBrushMaskValue(id);
     mask = mask > 0.0 ? 1.0 : 0.0;
-   
-    float2 uv = UVFromId(id);
-    uv = RotateUV(uv, BrushAngle);
+    
+    float2 uv = GetUV(id);
     
     float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
 
@@ -312,14 +301,13 @@ void CurveyStripsBrush(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    
+     
     float mask = GetBrushMaskValue(id);
     mask = mask > 0.0 ? 1.0 : 0.0;
-   
-    float2 uv = UVFromId(id);
-    uv = RotateUV(uv, BrushAngle);
     
-    float wave = sqrt(max(sin((uv.x + (0.25 * PI)) * BrushStripCount * PI * 2.0), 0));
+    float2 uv = GetUV(id);
+    
+    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * BrushStripCount * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 
