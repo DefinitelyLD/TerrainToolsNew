@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace TerrainTools {
 
@@ -37,18 +36,13 @@ namespace TerrainTools {
             var computeShader = context.GetCompute();
             var brushData = context.GetBrushData();
 
-            var brushHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainBrushHeightTexture);
-            var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-            var terrainHeightmapTexture = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
+            var brushShapeTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "HeightmapTexture", terrainHeightmapTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushHeightmapTexture", brushHeightmapTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "BrushMaskTexture", brushShapeTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.StripsBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
 
-            commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);

@@ -5,7 +5,7 @@ namespace TerrainTools {
     [TerrainBrush]
     public sealed class RingsTerrainBrush : TerrainBrush {
         private const float ROTATE_SPEED = 200.0f;
-        private const float DESIRED_ARC = 0.2f;
+        private const float DESIRED_ARC = 0.1f;
         private const int USER_BRUSH_X_SIZE = 5;
 
         private Vector2Int m_brushSize = Vector2Int.zero;
