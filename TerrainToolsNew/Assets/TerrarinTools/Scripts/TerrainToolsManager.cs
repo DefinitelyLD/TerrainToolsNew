@@ -82,6 +82,7 @@ namespace TerrainTools {
             m_splatIndex = data.splatIndex;
         }
 
+
         public void Tick() {
             Debug.Assert(m_context != null, "Context is not initialized or Destroyed.");
 
