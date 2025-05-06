@@ -326,9 +326,6 @@ void SpiralBrush(uint3 id : SV_DispatchThreadID)
         return;
     }
      
-    float mask = GetBrushMaskValue(id);
-    mask = mask > 0.0 ? 1.0 : 0.0;
-    
     // tranlating origin to the centre
     float2 pin = (float2) id.xy - (ActualBrushSize * 0.5f);
     float mag = sqrt(pow(pin.x, 2.0) + pow(pin.y, 2.0));
