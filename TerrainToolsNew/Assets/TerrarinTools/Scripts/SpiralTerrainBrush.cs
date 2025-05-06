@@ -6,7 +6,6 @@ namespace TerrainTools {
     public sealed class SpiralTerrainBrush : TerrainBrush {
         private const float ROTATE_SPEED = 200.0f;
         private const float EXPEND_SPEED = 1f;
-        private const int USER_BRUSH_X_SIZE = 8;
         private const float DESIRED_ARC = 0.2f;
 
         private Vector2Int m_brushSize = Vector2Int.zero;
@@ -88,8 +87,6 @@ namespace TerrainTools {
 
             float arc = m_radius * (Mathf.Deg2Rad * (m_angle - m_lastAngle));
             var subDivs = (int)(arc / DESIRED_ARC) + 1;
-
-            Debug.Log($"Subdivisions Count: {subDivs}");
 
             for (var i = 0; i < subDivs; i++) {
                 float angle = Mathf.LerpAngle(m_lastAngle, m_angle, i / (float)subDivs);
