@@ -112,7 +112,7 @@ namespace TerrainTools {
         public override void OnBrushUpdate(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
-            var stripBrushDispatchSize = context.GetDispatchSize();
+            var stripBrushDispatchSize = context.GetBrushDispatchSize();
             var brushData = context.GetBrushData();
 
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", m_angle);

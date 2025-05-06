@@ -30,13 +30,20 @@ namespace TerrainTools {
             var normalmapFormat = terrain.normalmapTexture.graphicsFormat;
             var holesmapFormat = terrain.terrainData.holesTexture.graphicsFormat;
 
+            var alphamapSize = Vector2Int.zero;
+            var alphamapFormat = GraphicsFormat.None;
+            if(terrain.terrainData.alphamapTextureCount > 0) {
+                alphamapFormat = terrain.terrainData.alphamapTextures[0].graphicsFormat;
+                alphamapSize = terrain.terrainData.alphamapTextures[0].GetSize();
+            }
+
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
             var normalmapSize = terrain.normalmapTexture.GetSize();
             var holesmapSize = terrain.terrainData.holesTexture.GetSize();
 
             var terrainSize = terrain.terrainData.size;
 
-            var actualBrushSize = brushData.actualBrushSize;
+            var actualBrushSize = brushData.heightmapActualBrushSize;
 
             var hologramMeshGridCellCount = new Vector2Int(heightmapSize.x + 1, heightmapSize.y + 1);
             var waterExclusionMeshGridCellCount = new Vector2Int(heightmapSize.x, heightmapSize.y);
@@ -169,7 +176,7 @@ namespace TerrainTools {
 
             // resizing brush mask
             if (context.IsRenderTextureExists(ContextConstants.TerrainBrushMaskTexture) == false) {
-                var texture = context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, brushData.brushSize, GraphicsFormat.R32_SFloat, false);
+                var texture = context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, brushData.heightmapBrushSize, GraphicsFormat.R32_SFloat, false);
 
                 // resizing brush mask
                 //var shape = context.GetCurrentBrushShape();
@@ -178,14 +185,14 @@ namespace TerrainTools {
 
             var brushMaskTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
 
-            if (brushMaskTexture.CheckSize(brushData.brushSize) == false) {
+            if (brushMaskTexture.CheckSize(brushData.heightmapBrushSize) == false) {
                 if (!hasFencePassed) {
                     TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
                     return;
                 }
 
                 context.DestroyRenderTexture(ContextConstants.TerrainBrushMaskTexture);
-                brushMaskTexture = context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, brushData.brushSize, GraphicsFormat.R32_SFloat, false);
+                brushMaskTexture = context.CreateRenderTexture(ContextConstants.TerrainBrushMaskTexture, brushData.heightmapBrushSize, GraphicsFormat.R32_SFloat, false);
             }
             //--
 
@@ -384,19 +391,19 @@ namespace TerrainTools {
 
             //--
             if (context.IsRenderTextureExists(ContextConstants.PatternBrushHeightmapResultTexture) == false) {
-                context.CreateRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture, brushData.actualBrushSize, heightmapFormat, true);
+                context.CreateRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture, brushData.heightmapActualBrushSize, heightmapFormat, true);
             }
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
-            if (patternBrushHeightmapResultTexture.CheckSize(brushData.actualBrushSize) == false) {
+            if (patternBrushHeightmapResultTexture.CheckSize(brushData.heightmapActualBrushSize) == false) {
                 if (!brushData.hasResourceFencePassed) {
                     TerrainToolsUtils.LogWarning("Waiting for the fence to pass before creating resource.");
                     return;
                 }
 
                 context.DestroyRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
-                patternBrushHeightmapResultTexture = context.CreateRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture, brushData.actualBrushSize, heightmapFormat, true);
+                patternBrushHeightmapResultTexture = context.CreateRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture, brushData.heightmapActualBrushSize, heightmapFormat, true);
             }
             //--
 
@@ -456,14 +463,14 @@ namespace TerrainTools {
             //--
 
             if (context.IsRenderTextureExists(ContextConstants.WaterBrushResultMaskTexture) == false) {
-                context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.actualBrushSize, GraphicsFormat.R32_SFloat, true);
+                context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.heightmapActualBrushSize, GraphicsFormat.R32_SFloat, true);
             }
 
             var waterBrushMaskResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
 
-            if (waterBrushMaskResultTexture.CheckSize(brushData.actualBrushSize) == false) {
+            if (waterBrushMaskResultTexture.CheckSize(brushData.heightmapActualBrushSize) == false) {
                 context.DestroyRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
-                waterBrushMaskResultTexture = context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.actualBrushSize, GraphicsFormat.R32_SFloat, true);
+                waterBrushMaskResultTexture = context.CreateRenderTexture(ContextConstants.WaterBrushResultMaskTexture, brushData.heightmapActualBrushSize, GraphicsFormat.R32_SFloat, true);
             }
             //--
 
@@ -516,8 +523,67 @@ namespace TerrainTools {
                 apiGetHeightTexture = context.CreateTexture2D(ContextConstants.APIGetHeightTexture, heightmapSize, heightmapFormat);
             }
             //--
+            if (alphamapSize != Vector2Int.zero) {
+                if (context.IsRenderTextureExists(ContextConstants.Splatmap_0_Texture)) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                }
+                var splatmap0Texture = context.GetRenderTexture(ContextConstants.Splatmap_0_Texture);
+                if(splatmap0Texture.CheckSize(alphamapSize) == false) {
+                    context.DestroyRenderTexture(ContextConstants.Splatmap_0_Texture);
+                    splatmap0Texture = context.CreateRenderTexture(ContextConstants.Splatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                }
+                //--
+                if (context.IsRenderTextureExists(ContextConstants.Splatmap_1_Texture)) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                }
+                var splatmap1Texture = context.GetRenderTexture(ContextConstants.Splatmap_1_Texture);
+                if (splatmap1Texture.CheckSize(alphamapSize) == false) {
+                    context.DestroyRenderTexture(ContextConstants.Splatmap_1_Texture);
+                    splatmap1Texture = context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                }
+                //--
 
-            if(waterInstances.WaterDeformDecal.material != waterDeformMaterial) {
+                if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_0_Texture)) {
+                    context.CreateRenderTexture(ContextConstants.VirtualSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                }
+                var virtualSplatmap0Texture = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
+                if (virtualSplatmap0Texture.CheckSize(alphamapSize) == false) {
+                    context.DestroyRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
+                    virtualSplatmap0Texture = context.CreateRenderTexture(ContextConstants.VirtualSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                }
+                //--
+                if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_1_Texture)) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                }
+                var virtualSplatmap1Texture = context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture);
+                if (virtualSplatmap1Texture.CheckSize(alphamapSize) == false) {
+                    context.DestroyRenderTexture(ContextConstants.VirtualSplatmap_1_Texture);
+                    virtualSplatmap1Texture = context.CreateRenderTexture(ContextConstants.VirtualSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                }
+                //--
+
+                if (context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_0_Texture)) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, actualBrushSize, alphamapFormat, true);
+                }
+                var splatmapBrushResult0Texture = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture);
+                if (splatmapBrushResult0Texture.CheckSize(actualBrushSize) == false) {
+                    context.DestroyRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture);
+                    splatmapBrushResult0Texture = context.CreateRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture, actualBrushSize, alphamapFormat, true);
+                }
+                //--
+                if (context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_1_Texture)) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, actualBrushSize, alphamapFormat, true);
+                }
+                var splatmapBrushResult1Texture = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture);
+                if (splatmapBrushResult1Texture.CheckSize(actualBrushSize) == false) {
+                    context.DestroyRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture);
+                    splatmapBrushResult1Texture = context.CreateRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture, actualBrushSize, alphamapFormat, true);
+                }
+                //--
+            }
+            //--
+
+            if (waterInstances.WaterDeformDecal.material != waterDeformMaterial) {
                 waterInstances.WaterDeformDecal.material = waterDeformMaterial;
             }
             if(waterInstances.WaterDeformDecal.updateMode != CustomRenderTextureUpdateMode.Realtime) {
@@ -544,6 +610,15 @@ namespace TerrainTools {
                 }
                 if (context.IsMeshsExists(ContextConstants.WaterExclusionMesh)) {
                     debug.SetMesh("Water Excluder Mesh", context.GetMesh(ContextConstants.WaterExclusionMesh));
+                }
+
+                if (alphamapSize != Vector2Int.zero) {
+                    debug.SetTexture("Splatmap 0 Texture", context.GetRenderTexture(ContextConstants.Splatmap_0_Texture));
+                    debug.SetTexture("Splatmap 1 Texture", context.GetRenderTexture(ContextConstants.Splatmap_1_Texture));
+                    debug.SetTexture("Virual Splatmap 0", context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture));
+                    debug.SetTexture("Virual Splatmap 1", context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture));
+                    debug.SetTexture("Brush Result 0 Splatmap Texture", context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture));
+                    debug.SetTexture("Brush Result 1 Splatmap Texture", context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture));
                 }
 
                 debug.SetTexture("Buffer Watermask Texture", bufferWaterMaskTexture);

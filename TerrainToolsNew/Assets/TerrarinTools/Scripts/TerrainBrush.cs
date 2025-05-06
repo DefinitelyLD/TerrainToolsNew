@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TerrainTools {
 
@@ -8,16 +7,15 @@ namespace TerrainTools {
 
         public virtual void Prepare(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
-            var computeShader = context.GetCompute();
             var blitMaterial = context.GetBlitMaterial();
 
             var brushData = context.GetBrushData();
-
             var terrain = context.GetTerrain();
-            var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
-            var terrainHeightmap = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
             if (GetBrushType() == BrushType.Heightmap) {
+
+                var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
+                var terrainHeightmap = context.GetRenderTexture(ContextConstants.TerrainHeightmapTexture);
 
                 var virtualTerrainHeightmap = context.GetRenderTexture(ContextConstants.VirtualTerrainHeightmap);
 
@@ -26,9 +24,9 @@ namespace TerrainTools {
 
                 // slicing brush size and position to be inbounds of the heightmap.
                 var slicingOps = new SlicingOperations();
-                var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
-                var slicedBrushSize = slicingOps.SliceBrushSize(brushData.brushPosition, heightmapSize, brushData.actualBrushSize);
-                var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.brushPosition, heightmapSize);
+                var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
+                var slicedBrushSize = slicingOps.SliceBrushSize(brushData.heightmapBrushPosition, heightmapSize, brushData.heightmapActualBrushSize);
+                var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.heightmapBrushPosition, heightmapSize);
                 slicedBrushPositionShift = new Vector2Int(Mathf.Abs(slicedBrushPositionShift.x), Mathf.Abs(slicedBrushPositionShift.y));
 
                 commandBuffer.Blit(virtualTerrainHeightmap, terrainHeightmap, blitMaterial);
@@ -40,6 +38,35 @@ namespace TerrainTools {
 
                 // copy the brush height to result brush heightmap
                 commandBuffer.Blit(brushHeightmap, brushResultHeightmap, blitMaterial);
+
+            }else if (GetBrushType() == BrushType.Splatmap) {
+                Debug.Assert(context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_0_Texture), "May be there are no terrain layers.");
+
+                var brushResult0Splatmap = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture);
+                var brushResult1Splatmap = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture);
+                var virtualSplatmap0 = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
+                var virtualSplatmap1 = context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture);
+
+/*                var splatmap0 = context.GetRenderTexture(ContextConstants.Splatmap_0_Texture);
+                var splatmap1 = context.GetRenderTexture (ContextConstants.Splatmap_1_Texture);*/
+
+                var splatmapSize = virtualSplatmap0.GetSize();
+
+                // slicing brush size and position to be inbounds of the heightmap.
+                var slicingOps = new SlicingOperations();
+                var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.alphamapBrushPosition, splatmapSize);
+                var slicedBrushSize = slicingOps.SliceBrushSize(brushData.alphamapBrushPosition, splatmapSize, brushData.alphamapActualBrushSize);
+                var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.alphamapBrushPosition, splatmapSize);
+                slicedBrushPositionShift = new Vector2Int(Mathf.Abs(slicedBrushPositionShift.x), Mathf.Abs(slicedBrushPositionShift.y));
+
+                // getting brush heightmap
+                commandBuffer.CopyTexture(
+                    virtualSplatmap0, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
+                    brushResult0Splatmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
+
+                commandBuffer.CopyTexture(
+                    virtualSplatmap1, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
+                    brushResult1Splatmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
             }
         }
 
@@ -59,13 +86,39 @@ namespace TerrainTools {
 
                 // slicing brush size and position to be inbounds of the heightmap.
                 var slicingOps = new SlicingOperations();
-                var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
-                var slicedBrushSize = slicingOps.SliceBrushSize(brushData.brushPosition, heightmapSize, brushData.actualBrushSize);
-                var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.brushPosition, heightmapSize);
+                var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
+                var slicedBrushSize = slicingOps.SliceBrushSize(brushData.heightmapBrushPosition, heightmapSize, brushData.heightmapActualBrushSize);
+                var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.heightmapBrushPosition, heightmapSize);
                 slicedBrushPositionShift = new Vector2Int(Mathf.Abs(slicedBrushPositionShift.x), Mathf.Abs(slicedBrushPositionShift.y));
 
                 commandBuffer.CopyTexture(brushResultHeightmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
                     virtualTerrainHeightmap, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+
+            }
+            else if(GetBrushType() == BrushType.Splatmap) {
+
+                var brushResult0Splatmap = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture);
+                var brushResult1Splatmap = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture);
+                var virtualSplatmap0 = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
+                var virtualSplatmap1 = context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture);
+
+/*                var splatmap0 = context.GetRenderTexture(ContextConstants.Splatmap_0_Texture);
+                var splatmap1 = context.GetRenderTexture (ContextConstants.Splatmap_1_Texture);*/
+
+                var splatmapSize = virtualSplatmap0.GetSize();
+
+                // slicing brush size and position to be inbounds of the heightmap.
+                var slicingOps = new SlicingOperations();
+                var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.alphamapBrushPosition, splatmapSize);
+                var slicedBrushSize = slicingOps.SliceBrushSize(brushData.alphamapBrushPosition, splatmapSize, brushData.alphamapActualBrushSize);
+                var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.heightmapBrushPosition, splatmapSize);
+                slicedBrushPositionShift = new Vector2Int(Mathf.Abs(slicedBrushPositionShift.x), Mathf.Abs(slicedBrushPositionShift.y));
+
+                commandBuffer.CopyTexture(brushResult0Splatmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                    virtualSplatmap0, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+
+                commandBuffer.CopyTexture(brushResult1Splatmap, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                    virtualSplatmap1, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
             }
         }
         
@@ -90,10 +143,10 @@ namespace TerrainTools {
             terrainPosition.z -= offsetPosition;
 
             Vector4 bounds = new Vector4();
-            var offsetBounds = new Vector2(brushData.actualBrushSize.x - brushData.brushSize.x, brushData.actualBrushSize.y - brushData.brushSize.y);
+            var offsetBounds = new Vector2(brushData.heightmapActualBrushSize.x - brushData.heightmapBrushSize.x, brushData.heightmapActualBrushSize.y - brushData.heightmapBrushSize.y);
             offsetBounds.x *= 0.5f;
             offsetBounds.y *= 0.5f;
-            var innerBrushPosition = new Vector2(brushData.brushPosition.x, brushData.brushPosition.y);
+            var innerBrushPosition = new Vector2(brushData.heightmapBrushPosition.x, brushData.heightmapBrushPosition.y);
             innerBrushPosition.x += offsetBounds.x;
             innerBrushPosition.y += offsetBounds.y;
 
@@ -102,8 +155,8 @@ namespace TerrainTools {
 
             bounds.x = innerBrushPosition.x;
             bounds.y = innerBrushPosition.y;
-            bounds.z = bounds.x + (brushData.brushSize.x / (float)heightmapSize.x);
-            bounds.w = bounds.y + (brushData.brushSize.y / (float)heightmapSize.y);
+            bounds.z = bounds.x + (brushData.heightmapBrushSize.x / (float)heightmapSize.x);
+            bounds.w = bounds.y + (brushData.heightmapBrushSize.y / (float)heightmapSize.y);
 
             hologramMaterial.SetTexture("_Heightmap", unityTerrainHeightmap);
             hologramMaterial.SetVector("_TerrainSize", terrainSize);

@@ -26,6 +26,8 @@ namespace TerrainTools {
         public float deltaTime;
         public float tweenStrength;
 
+        public int splatIndex;
+
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -42,6 +44,8 @@ namespace TerrainTools {
         private int m_brushHeight;
         private float m_brushStrength;
         private float m_brushAngle;
+
+        private int m_splatIndex;
 
         private float m_tweenStrength;
 
@@ -74,6 +78,8 @@ namespace TerrainTools {
 
             m_brushFallback = data.brushFallback;
             m_deltaTime = data.deltaTime;
+
+            m_splatIndex = data.splatIndex;
         }
 
         public void Tick() {
@@ -89,25 +95,32 @@ namespace TerrainTools {
 
             var terrain = m_context.GetTerrain();
             var heightmapResolution = terrain.terrainData.heightmapResolution;
+            var alphamapResolution = terrain.terrainData.alphamapResolution;
             var terrainSize = terrain.terrainData.size;
 
             var brushSizeOps = new BrushSizeOperations();
-            var texelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, heightmapResolution);
+            var heightmapTexelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, heightmapResolution);
             var gpuBrushHeight = brushSizeOps.BrushHeightToGPUHeightValue(m_brushHeight, terrainSize);
 
             var gpuTerrainMaskBaseHeight = brushSizeOps.BrushHeightToGPUHeightValue(m_resources.TerrainMaskBaseHeight, terrainSize);
             var gpuTerrainMaskBorder = brushSizeOps.BrushSizeToTexelSize(new Vector2Int(m_resources.TerrainMaskBorder, m_resources.TerrainMaskBorder), terrainSize, heightmapResolution).x;
 
-            var actualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(texelBrushSize);
+            var heightmapActualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(heightmapTexelBrushSize);
             var brushStripeCount = brushSizeOps.CalculateStripCount(m_brushSize, m_brushHeight);
+
+            var splatmapTexelBrushSize = brushSizeOps.BrushSizeToTexelSize(m_brushSize, terrainSize, alphamapResolution);
+            var splatmapActualBrushSize = brushSizeOps.TexelBrushSizeToActualBrushSize(splatmapTexelBrushSize);
 
             var newBrushData = new BrushData();
             newBrushData.userBrushSize = m_brushSize;
-            newBrushData.brushSize = texelBrushSize;
+            newBrushData.heightmapBrushSize = heightmapTexelBrushSize;
             newBrushData.brushHeight = gpuBrushHeight;
             newBrushData.angle = m_brushAngle;
             newBrushData.stripCount = brushStripeCount;
-            newBrushData.actualBrushSize = actualBrushSize;
+            newBrushData.heightmapActualBrushSize = heightmapActualBrushSize;
+            newBrushData.alphamapActualBrushSize = splatmapActualBrushSize;
+            newBrushData.alphamapBrushSize = splatmapTexelBrushSize;
+            newBrushData.splatIndex = m_splatIndex;
 
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
             newBrushData.brushStrength = m_brushStrength;
@@ -178,9 +191,11 @@ namespace TerrainTools {
             var hitPoint = new Vector3(hit.point.x, terrain.transform.position.y, hit.point.z);
             var pointerTerrainPos = hitPoint - terrain.transform.position;
 
-            var brushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, actualBrushSize, terrainSize, heightmapResolution);
+            var heightmapBrushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, heightmapActualBrushSize, terrainSize, heightmapResolution);
+            var alphamapBrushPosition = brushSizeOps.BrushPointerPositionToTexelPosition(pointerTerrainPos, splatmapActualBrushSize, terrainSize, alphamapResolution);
 
-            newBrushData.brushPosition = brushPosition;
+            newBrushData.heightmapBrushPosition = heightmapBrushPosition;
+            newBrushData.alphamapBrushPosition = alphamapBrushPosition;
             newBrushData.pointerPosition = pointerTerrainPos;
             m_context.UpdateData(newBrushData);
 

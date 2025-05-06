@@ -19,9 +19,9 @@ namespace TerrainTools {
             var patternTexture = context.GetRenderTexture(ContextConstants.PatternTexture);
 
             var slicingOps = new SlicingOperations();
-            var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
-            var slicedBrushSize = slicingOps.SliceBrushSize(brushData.brushPosition, heightmapSize, brushData.actualBrushSize);
-            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.brushPosition, heightmapSize);
+            var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
+            var slicedBrushSize = slicingOps.SliceBrushSize(brushData.heightmapBrushPosition, heightmapSize, brushData.heightmapActualBrushSize);
+            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.heightmapBrushPosition, heightmapSize);
             slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
             commandBuffer.CopyTexture(
@@ -48,9 +48,9 @@ namespace TerrainTools {
             commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushStripCount", brushData.stripCount);
 
-            commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
-            commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);
-            commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.actualBrushSize.x, brushData.actualBrushSize.y);
+            commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.heightmapBrushPosition.x, brushData.heightmapBrushPosition.y);
+            commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.heightmapBrushSize.x, brushData.heightmapBrushSize.y);
+            commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.heightmapActualBrushSize.x, brushData.heightmapActualBrushSize.y);
         }
 
         public override void OnBrushUp(IBrushContext context) {
@@ -60,7 +60,7 @@ namespace TerrainTools {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
 
-            var stripBrushDispatchSize = context.GetDispatchSize();
+            var stripBrushDispatchSize = context.GetBrushDispatchSize();
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.PatternEraseBrush, stripBrushDispatchSize.x, stripBrushDispatchSize.y, stripBrushDispatchSize.z);
 
@@ -71,9 +71,9 @@ namespace TerrainTools {
             var heightmapSize = patternTexture.GetSize();
 
             var slicingOps = new SlicingOperations();
-            var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.brushPosition, heightmapSize);
-            var slicedBrushSize = slicingOps.SliceBrushSize(brushData.brushPosition, heightmapSize, brushData.actualBrushSize);
-            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.brushPosition, heightmapSize);
+            var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
+            var slicedBrushSize = slicingOps.SliceBrushSize(brushData.heightmapBrushPosition, heightmapSize, brushData.heightmapActualBrushSize);
+            var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(brushData.heightmapBrushPosition, heightmapSize);
             slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
             commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,

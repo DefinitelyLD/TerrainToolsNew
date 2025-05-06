@@ -17,7 +17,7 @@ namespace TerrainTools {
         Material GetBlitMaterial();
         Material GetHologramMaterial();
         CommandBuffer GetCommandBuffer();
-        Vector3Int GetDispatchSize();
+        Vector3Int GetBrushDispatchSize();
         int GetThreadGroupSize();
        Vector3Int GetDispatchSize(Vector2Int resolution);
 

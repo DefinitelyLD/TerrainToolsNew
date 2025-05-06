@@ -74,7 +74,7 @@ namespace TerrainTools {
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SpiralBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.DoubleSpiralBrush, "OutputBrushHeightmapTexture", patternBrushHeightmapResultTexture);
 
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
             commandBuffer.SetComputeFloatParam(computeShader, "BrushHeight", brushData.brushHeight);
@@ -97,7 +97,7 @@ namespace TerrainTools {
         public override void OnBrushUpdate(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
-            var dispatchSize = context.GetDispatchSize();
+            var dispatchSize = context.GetBrushDispatchSize();
             var brushData = context.GetBrushData();
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);
@@ -133,7 +133,7 @@ namespace TerrainTools {
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
                     patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
 
-                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.SpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.DoubleSpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
                 commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
@@ -164,7 +164,7 @@ namespace TerrainTools {
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
                     patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
 
-                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.SpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.DoubleSpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
                 commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);

@@ -319,12 +319,12 @@ namespace TerrainTools {
             return m_resources.Brushes[m_brushData.currentBrushIndex];
         }
 
-        public Vector3Int GetDispatchSize() {
-            Debug.Assert(m_brushData.actualBrushSize.x == m_brushData.actualBrushSize.y, "Actual Brush should have been calculated as a square.");
+        public Vector3Int GetBrushDispatchSize() {
+            Debug.Assert(m_brushData.heightmapActualBrushSize.x == m_brushData.heightmapActualBrushSize.y, "Actual Brush should have been calculated as a square.");
 
             return new Vector3Int(
-                m_brushData.actualBrushSize.x / THREAD_GROUP_SIZE + 1,
-                m_brushData.actualBrushSize.y / THREAD_GROUP_SIZE + 1,
+                m_brushData.heightmapActualBrushSize.x / THREAD_GROUP_SIZE + 1,
+                m_brushData.heightmapActualBrushSize.y / THREAD_GROUP_SIZE + 1,
                 1
             );
         }

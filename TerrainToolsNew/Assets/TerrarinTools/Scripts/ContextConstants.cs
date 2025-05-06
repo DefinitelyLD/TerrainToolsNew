@@ -31,5 +31,14 @@
         //public const string WATER_HEIGHTMAP_TEXTURE = "WaterHeightmapTexture";
 
         public const string WaterExclusionMesh = "WaterExclusionMesh";
+
+        public const string Splatmap_0_Texture = "Splatmap_0_Texture";
+        public const string Splatmap_1_Texture = "Splatmap_1_Texture";
+
+        public const string VirtualSplatmap_0_Texture = "VirtualSplatmap_0_Texture";
+        public const string VirtualSplatmap_1_Texture = "VirtualSplatmap_1_Texture";
+
+        public const string Splatmap_Brush_Result_0_Texture = "Splatmap_Brush_Result_0_Texture";
+        public const string Splatmap_Brush_Result_1_Texture = "Splatmap_Brush_Result_1_Texture";
     }
 }

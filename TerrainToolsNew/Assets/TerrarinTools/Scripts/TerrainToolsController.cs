@@ -23,6 +23,8 @@ namespace TerrainTools {
 
         [SerializeField]
         private float BrushFall = 0.2f;
+        [SerializeField]
+        private int SplatIndex = 0;
 
         [Header("References:")]
         [Tooltip("The terrain on which to work.")]
@@ -59,6 +61,7 @@ namespace TerrainTools {
 
                     deltaTime = Time.deltaTime,
                     tweenStrength = TweenStrength,
+                    splatIndex = SplatIndex
                 });
 
                 m_manager.Tick();

@@ -74,7 +74,7 @@ namespace TerrainTools {
         public override void OnBrushUpdate(IBrushContext context) {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
-            var dispatchSize = context.GetDispatchSize();
+            var dispatchSize = context.GetBrushDispatchSize();
             var brushData = context.GetBrushData();
 
             var patternBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.PatternBrushHeightmapResultTexture);

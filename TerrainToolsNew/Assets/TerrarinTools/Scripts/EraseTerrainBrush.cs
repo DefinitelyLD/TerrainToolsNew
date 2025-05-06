@@ -32,9 +32,9 @@ namespace TerrainTools {
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
 
-            commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.brushPosition.x, brushData.brushPosition.y);
-            commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.brushSize.x, brushData.brushSize.y);
-            commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.actualBrushSize.x, brushData.actualBrushSize.y);
+            commandBuffer.SetComputeIntParams(computeShader, "BrushPosition", brushData.heightmapBrushPosition.x, brushData.heightmapBrushPosition.y);
+            commandBuffer.SetComputeIntParams(computeShader, "BrushSize", brushData.heightmapBrushSize.x, brushData.heightmapBrushSize.y);
+            commandBuffer.SetComputeIntParams(computeShader, "ActualBrushSize", brushData.heightmapActualBrushSize.x, brushData.heightmapActualBrushSize.y);
         }
 
         public override void OnBrushUp(IBrushContext context) {
@@ -45,7 +45,7 @@ namespace TerrainTools {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
 
-            var dispatchSize = context.GetDispatchSize();
+            var dispatchSize = context.GetBrushDispatchSize();
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.EraseBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
         }
