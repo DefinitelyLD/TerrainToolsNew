@@ -15,8 +15,8 @@ namespace TerrainTools {
             var finalWaterTexture = context.GetRenderTexture(ContextConstants.FinalWaterMaskTexture);
             var bufferWaterMask = context.GetRenderTexture(ContextConstants.BufferWaterMaskTexture);
 
-            var virtualSplatmap0 = context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
-            var virtualSplatmap1 = context.GetRenderTexture (ContextConstants.BufferSplatmap_1_Texture);
+            var virtualSplatmap0 = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
+            var virtualSplatmap1 = context.GetRenderTexture (ContextConstants.VirtualSplatmap_0_Texture);
 
             var bufferSplatmap0 = context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
             var bufferSplatmap1 = context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture);
@@ -40,19 +40,26 @@ namespace TerrainTools {
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, heightmapDispatchSize.x, heightmapDispatchSize.y, heightmapDispatchSize.z);
             commandBuffer.CopyTexture(finalWaterTexture, bufferWaterMask);
 
-            if (bufferSplatmap0 != null) {
+            if (outputSplat0 != null) {
 
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "SplatmapTexture_0", virtualSplatmap1);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "SplatmapTexture_0", virtualSplatmap0);
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "SplatmapTexture_1", virtualSplatmap1);
 
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "OutputBrushSplatmapTexture_0", bufferSplatmap0);
-                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "OutputBrushSplatmapTexture_1", bufferSplatmap0);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "OutputBrushSplatmapTexture_1", bufferSplatmap1);
 
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "TweenStateSplatmapTexture_0", outputSplat0);
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "TweenStateSplatmapTexture_1", outputSplat1);
 
                 var splatmapDispatchSize = context.GetDispatchSize(bufferSplatmap0.GetSize());
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TweenSplats, splatmapDispatchSize.x, splatmapDispatchSize.y, splatmapDispatchSize.z);
+
+                //commandBuffer.CopyTexture(virtualSplatmap0, 0, 0, bufferSplatmap0, 0, 0);
+                //commandBuffer.CopyTexture(virtualSplatmap1, 0, 0, bufferSplatmap1, 0, 0);
+
+                commandBuffer.GenerateMips(bufferSplatmap0);
+                commandBuffer.GenerateMips(bufferSplatmap1);
+
                 commandBuffer.CopyTexture(bufferSplatmap0, outputSplat0);
                 commandBuffer.CopyTexture(bufferSplatmap1, outputSplat1);
             }

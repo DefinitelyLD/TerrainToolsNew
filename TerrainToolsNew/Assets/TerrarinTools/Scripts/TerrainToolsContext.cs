@@ -166,14 +166,16 @@ namespace TerrainTools {
             return texture;
         }
 
-        public RenderTexture CreateRenderTexture(string name, Vector2Int size, GraphicsFormat format, bool readWrite) {
+        public RenderTexture CreateRenderTexture(string name, Vector2Int size, GraphicsFormat format, bool readWrite, int mips = 1) {
             Debug.Assert(name != null && name != string.Empty);
             Debug.Assert(IsRenderTextureExists(name) == false, $"RenderTexture with name {name} already exists");
 
 
             var desc = new RenderTextureDescriptor();
             desc.volumeDepth = 1;
-            desc.useMipMap = false;
+            desc.useMipMap = mips != 1;
+            desc.mipCount = mips;
+            desc.autoGenerateMips = false;
             desc.bindMS = false;
             desc.graphicsFormat = format;
             desc.depthBufferBits = 0;

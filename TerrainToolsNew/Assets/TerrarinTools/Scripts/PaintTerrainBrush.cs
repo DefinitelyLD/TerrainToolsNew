@@ -2,6 +2,8 @@
 using System.Numerics;
 
 namespace TerrainTools {
+
+    [TerrainBrush]
     public sealed class PaintTerrainBrush : TerrainBrush {
         public override BrushType GetBrushType() {
             return BrushType.Splatmap;

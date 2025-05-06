@@ -429,8 +429,7 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
         float4 current = OutputBrushSplatmapTexture_0[id.xy];
         current += BrushStrength * mask * float4(SplatmapChannelMask) * DeltaTime;
         current -= BrushStrength * mask * float4(1 - SplatmapChannelMask) * DeltaTime;
-        
-        
+           
         current = clamp(current, 0, 1);
         OutputBrushSplatmapTexture_0[id.xy] = current;
     }
@@ -439,7 +438,6 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
         float4 current = OutputBrushSplatmapTexture_1[id.xy];
         current += BrushStrength * mask * float4(SplatmapChannelMask) * DeltaTime;
         current -= BrushStrength * mask * float4(1 - SplatmapChannelMask) * DeltaTime;
-        
         
         current = clamp(current, 0, 1);
         OutputBrushSplatmapTexture_1[id.xy] = current;
@@ -683,12 +681,12 @@ void TweenSplats(uint3 id : SV_DispatchThreadID)
     float4 target0 = SplatmapTexture_0.Load(int3(id.x, id.y, 0));
     float4 target1 = SplatmapTexture_1.Load(int3(id.x, id.y, 0));
     
-    float4 current0 = TweenStateSplatmapTexture_0[id.xy];
-    float4 current1 = TweenStateSplatmapTexture_1[id.xy];
+    float4 current0 = TweenStateSplatmapTexture_0.Load(int3(id.x, id.y, 0));
+    float4 current1 = TweenStateSplatmapTexture_1.Load(int3(id.x, id.y, 0));
     
     float4 new0 = lerp(current0, target0, DeltaTime * TweenStrength);
     float4 new1 = lerp(current1, target1, DeltaTime * TweenStrength);
-    
+
     OutputBrushSplatmapTexture_0[id.xy] = new0;
     OutputBrushSplatmapTexture_1[id.xy] = new1;
 }

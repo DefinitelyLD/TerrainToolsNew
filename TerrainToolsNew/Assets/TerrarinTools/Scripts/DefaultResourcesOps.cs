@@ -524,23 +524,31 @@ namespace TerrainTools {
             }
             //--
             if (alphamapSize != Vector2Int.zero) {
+                var mipsCount = terrain.terrainData.alphamapTextures[0].mipmapCount;
+
                 if (context.IsRenderTextureExists(ContextConstants.BufferSplatmap_0_Texture) == false) {
-                    context.CreateRenderTexture(ContextConstants.BufferSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                    context.CreateRenderTexture(ContextConstants.BufferSplatmap_0_Texture, alphamapSize, alphamapFormat, true, mipsCount);
                 }
                 var splatmap0Texture = context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
                 if(splatmap0Texture.CheckSize(alphamapSize) == false) {
                     context.DestroyRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
-                    splatmap0Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                    splatmap0Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_0_Texture, alphamapSize, alphamapFormat, true, mipsCount);
                 }
                 //--
                 if (context.IsRenderTextureExists(ContextConstants.BufferSplatmap_1_Texture) == false) {
-                    context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                    context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true, mipsCount);
                 }
                 var splatmap1Texture = context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture);
                 if (splatmap1Texture.CheckSize(alphamapSize) == false) {
                     context.DestroyRenderTexture(ContextConstants.BufferSplatmap_1_Texture);
-                    splatmap1Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                    splatmap1Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true, mipsCount);
                 }
+                //--
+                commandBuffer.SetRenderTarget(splatmap0Texture);
+                commandBuffer.ClearRenderTarget(false, true, Color.black);
+
+                commandBuffer.SetRenderTarget(splatmap1Texture);
+                commandBuffer.ClearRenderTarget(false, true, Color.black);
                 //--
 
                 if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_0_Texture) == false) {
@@ -613,12 +621,15 @@ namespace TerrainTools {
                 }
 
                 if (alphamapSize != Vector2Int.zero) {
-                    debug.SetTexture("Splatmap 0 Texture", context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture));
-                    debug.SetTexture("Splatmap 1 Texture", context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture));
+                    debug.SetTexture("Buffer Splatmap 0 Texture", context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture));
+                    debug.SetTexture("Buffer Splatmap 1 Texture", context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture));
                     debug.SetTexture("Virual Splatmap 0", context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture));
                     debug.SetTexture("Virual Splatmap 1", context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture));
                     debug.SetTexture("Brush Result 0 Splatmap Texture", context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture));
                     debug.SetTexture("Brush Result 1 Splatmap Texture", context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture));
+
+                    debug.SetTexture("Unity Terrain Splatmap 0", terrain.terrainData.alphamapTextures[0]);
+                    debug.SetTexture("Unity Terrain Splatmap 1", terrain.terrainData.alphamapTextures[1]);
                 }
 
                 debug.SetTexture("Buffer Watermask Texture", bufferWaterMaskTexture);

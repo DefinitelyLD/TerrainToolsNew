@@ -349,6 +349,82 @@ MonoBehaviour:
       useCustomCoords: 0
       layerUVMode: 1
       layerUVValue: {x: 1, y: 1, z: 0, w: 0}
+    - name: Terrain Layer Cliffs
+      isInitialized: 1
+      layerID: 3
+      layerColor: {r: 1, g: 1, b: 1, a: 1}
+      useCustomLayer: 0
+      terrainLayer: {fileID: 0}
+      useCustomTextures: 0
+      layerAlbedo: {fileID: 0}
+      layerNormal: {fileID: 0}
+      layerShader: {fileID: 0}
+      useCustomSettings: 0
+      layerSpecular: {r: 0, g: 0, b: 0, a: 1}
+      layerRemapMin: {x: 0, y: 0, z: 0, w: 0}
+      layerRemapMax: {x: 1, y: 1, z: 1, w: 1}
+      layerSmoothness: 1
+      layerNormalScale: 1
+      useCustomCoords: 0
+      layerUVMode: 1
+      layerUVValue: {x: 1, y: 1, z: 0, w: 0}
+    - name: Terrain Layer Sand
+      isInitialized: 1
+      layerID: 4
+      layerColor: {r: 1, g: 1, b: 1, a: 1}
+      useCustomLayer: 0
+      terrainLayer: {fileID: 0}
+      useCustomTextures: 0
+      layerAlbedo: {fileID: 0}
+      layerNormal: {fileID: 0}
+      layerShader: {fileID: 0}
+      useCustomSettings: 0
+      layerSpecular: {r: 0, g: 0, b: 0, a: 1}
+      layerRemapMin: {x: 0, y: 0, z: 0, w: 0}
+      layerRemapMax: {x: 1, y: 1, z: 1, w: 1}
+      layerSmoothness: 1
+      layerNormalScale: 1
+      useCustomCoords: 0
+      layerUVMode: 1
+      layerUVValue: {x: 1, y: 1, z: 0, w: 0}
+    - name: Terrain Layer Rocks
+      isInitialized: 1
+      layerID: 5
+      layerColor: {r: 1, g: 1, b: 1, a: 1}
+      useCustomLayer: 0
+      terrainLayer: {fileID: 0}
+      useCustomTextures: 0
+      layerAlbedo: {fileID: 0}
+      layerNormal: {fileID: 0}
+      layerShader: {fileID: 0}
+      useCustomSettings: 0
+      layerSpecular: {r: 0, g: 0, b: 0, a: 1}
+      layerRemapMin: {x: 0, y: 0, z: 0, w: 0}
+      layerRemapMax: {x: 1, y: 1, z: 1, w: 1}
+      layerSmoothness: 1
+      layerNormalScale: 1
+      useCustomCoords: 0
+      layerUVMode: 1
+      layerUVValue: {x: 1, y: 1, z: 0, w: 0}
+    - name: Terrain Layer Lava
+      isInitialized: 1
+      layerID: 6
+      layerColor: {r: 1, g: 1, b: 1, a: 1}
+      useCustomLayer: 0
+      terrainLayer: {fileID: 0}
+      useCustomTextures: 0
+      layerAlbedo: {fileID: 0}
+      layerNormal: {fileID: 0}
+      layerShader: {fileID: 0}
+      useCustomSettings: 0
+      layerSpecular: {r: 0, g: 0, b: 0, a: 1}
+      layerRemapMin: {x: 0, y: 0, z: 0, w: 0}
+      layerRemapMax: {x: 1, y: 1, z: 1, w: 1}
+      layerSmoothness: 1
+      layerNormalScale: 1
+      useCustomCoords: 0
+      layerUVMode: 1
+      layerUVValue: {x: 1, y: 1, z: 0, w: 0}
   terrain: {fileID: 1206018916}
   meshRenderer: {fileID: 0}
   terrainMaterial: {fileID: 2100000, guid: b0f5528dfb05fb54d9105357077479eb, type: 2}
