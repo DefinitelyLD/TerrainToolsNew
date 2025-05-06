@@ -32,8 +32,8 @@
 
         public const string WaterExclusionMesh = "WaterExclusionMesh";
 
-        public const string Splatmap_0_Texture = "Splatmap_0_Texture";
-        public const string Splatmap_1_Texture = "Splatmap_1_Texture";
+        public const string BufferSplatmap_0_Texture = "Splatmap_0_Texture";
+        public const string BufferSplatmap_1_Texture = "Splatmap_1_Texture";
 
         public const string VirtualSplatmap_0_Texture = "VirtualSplatmap_0_Texture";
         public const string VirtualSplatmap_1_Texture = "VirtualSplatmap_1_Texture";

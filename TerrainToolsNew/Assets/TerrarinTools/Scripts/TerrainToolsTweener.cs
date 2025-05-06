@@ -2,7 +2,7 @@
 
 namespace TerrainTools {
     public struct TerrainToolsTweener {
-        public readonly void TweenHeightmapPass(IBrushContext context, RenderTexture output) {
+        public readonly void TweenHeightmapPass(IBrushContext context, RenderTexture outputHeightmap, Texture2D outputSplat0, Texture2D outputSplat1) {
 
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
@@ -15,24 +15,47 @@ namespace TerrainTools {
             var finalWaterTexture = context.GetRenderTexture(ContextConstants.FinalWaterMaskTexture);
             var bufferWaterMask = context.GetRenderTexture(ContextConstants.BufferWaterMaskTexture);
 
-            var dispatchSize = context.GetDispatchSize(finalHeightmap.GetSize());
+            var virtualSplatmap0 = context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
+            var virtualSplatmap1 = context.GetRenderTexture (ContextConstants.BufferSplatmap_1_Texture);
+
+            var bufferSplatmap0 = context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
+            var bufferSplatmap1 = context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture);
+
+            var heightmapDispatchSize = context.GetDispatchSize(finalHeightmap.GetSize());
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "HeightmapTexture", finalHeightmap);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "OutputHeightmapTexture", bufferHeightmap);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "TweenStateHeightmap", output);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "TweenStateHeightmap", outputHeightmap);
 
             commandBuffer.SetComputeFloatParam(computeShader, "TweenStrength", data.strength);
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", data.deltaTime);
 
-            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, dispatchSize.x, dispatchSize.y, dispatchSize.z);
-            commandBuffer.CopyTexture(bufferHeightmap, output);
+            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, heightmapDispatchSize.x, heightmapDispatchSize.y, heightmapDispatchSize.z);
+            commandBuffer.CopyTexture(bufferHeightmap, outputHeightmap);
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "HeightmapTexture", virtualWaterTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "OutputHeightmapTexture", finalWaterTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "TweenStateHeightmap", bufferWaterMask);
 
-            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, heightmapDispatchSize.x, heightmapDispatchSize.y, heightmapDispatchSize.z);
             commandBuffer.CopyTexture(finalWaterTexture, bufferWaterMask);
+
+            if (bufferSplatmap0 != null) {
+
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "SplatmapTexture_0", virtualSplatmap1);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "SplatmapTexture_1", virtualSplatmap1);
+
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "OutputBrushSplatmapTexture_0", bufferSplatmap0);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "OutputBrushSplatmapTexture_1", bufferSplatmap0);
+
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "TweenStateSplatmapTexture_0", outputSplat0);
+                commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "TweenStateSplatmapTexture_1", outputSplat1);
+
+                var splatmapDispatchSize = context.GetDispatchSize(bufferSplatmap0.GetSize());
+                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TweenSplats, splatmapDispatchSize.x, splatmapDispatchSize.y, splatmapDispatchSize.z);
+                commandBuffer.CopyTexture(bufferSplatmap0, outputSplat0);
+                commandBuffer.CopyTexture(bufferSplatmap1, outputSplat1);
+            }
         }
     }
 }

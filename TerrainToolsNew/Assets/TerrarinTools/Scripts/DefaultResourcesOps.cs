@@ -524,26 +524,26 @@ namespace TerrainTools {
             }
             //--
             if (alphamapSize != Vector2Int.zero) {
-                if (context.IsRenderTextureExists(ContextConstants.Splatmap_0_Texture)) {
-                    context.CreateRenderTexture(ContextConstants.Splatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                if (context.IsRenderTextureExists(ContextConstants.BufferSplatmap_0_Texture) == false) {
+                    context.CreateRenderTexture(ContextConstants.BufferSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
                 }
-                var splatmap0Texture = context.GetRenderTexture(ContextConstants.Splatmap_0_Texture);
+                var splatmap0Texture = context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
                 if(splatmap0Texture.CheckSize(alphamapSize) == false) {
-                    context.DestroyRenderTexture(ContextConstants.Splatmap_0_Texture);
-                    splatmap0Texture = context.CreateRenderTexture(ContextConstants.Splatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                    context.DestroyRenderTexture(ContextConstants.BufferSplatmap_0_Texture);
+                    splatmap0Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
                 }
                 //--
-                if (context.IsRenderTextureExists(ContextConstants.Splatmap_1_Texture)) {
-                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                if (context.IsRenderTextureExists(ContextConstants.BufferSplatmap_1_Texture) == false) {
+                    context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
                 }
-                var splatmap1Texture = context.GetRenderTexture(ContextConstants.Splatmap_1_Texture);
+                var splatmap1Texture = context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture);
                 if (splatmap1Texture.CheckSize(alphamapSize) == false) {
-                    context.DestroyRenderTexture(ContextConstants.Splatmap_1_Texture);
-                    splatmap1Texture = context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                    context.DestroyRenderTexture(ContextConstants.BufferSplatmap_1_Texture);
+                    splatmap1Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
                 }
                 //--
 
-                if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_0_Texture)) {
+                if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_0_Texture) == false) {
                     context.CreateRenderTexture(ContextConstants.VirtualSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
                 }
                 var virtualSplatmap0Texture = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
@@ -552,8 +552,8 @@ namespace TerrainTools {
                     virtualSplatmap0Texture = context.CreateRenderTexture(ContextConstants.VirtualSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
                 }
                 //--
-                if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_1_Texture)) {
-                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_1_Texture) == false) {
+                    context.CreateRenderTexture(ContextConstants.VirtualSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
                 }
                 var virtualSplatmap1Texture = context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture);
                 if (virtualSplatmap1Texture.CheckSize(alphamapSize) == false) {
@@ -562,8 +562,8 @@ namespace TerrainTools {
                 }
                 //--
 
-                if (context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_0_Texture)) {
-                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, actualBrushSize, alphamapFormat, true);
+                if (context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_0_Texture) == false) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture, actualBrushSize, alphamapFormat, true);
                 }
                 var splatmapBrushResult0Texture = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture);
                 if (splatmapBrushResult0Texture.CheckSize(actualBrushSize) == false) {
@@ -571,8 +571,8 @@ namespace TerrainTools {
                     splatmapBrushResult0Texture = context.CreateRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture, actualBrushSize, alphamapFormat, true);
                 }
                 //--
-                if (context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_1_Texture)) {
-                    context.CreateRenderTexture(ContextConstants.Splatmap_1_Texture, actualBrushSize, alphamapFormat, true);
+                if (context.IsRenderTextureExists(ContextConstants.Splatmap_Brush_Result_1_Texture) == false) {
+                    context.CreateRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture, actualBrushSize, alphamapFormat, true);
                 }
                 var splatmapBrushResult1Texture = context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture);
                 if (splatmapBrushResult1Texture.CheckSize(actualBrushSize) == false) {
@@ -613,8 +613,8 @@ namespace TerrainTools {
                 }
 
                 if (alphamapSize != Vector2Int.zero) {
-                    debug.SetTexture("Splatmap 0 Texture", context.GetRenderTexture(ContextConstants.Splatmap_0_Texture));
-                    debug.SetTexture("Splatmap 1 Texture", context.GetRenderTexture(ContextConstants.Splatmap_1_Texture));
+                    debug.SetTexture("Splatmap 0 Texture", context.GetRenderTexture(ContextConstants.BufferSplatmap_0_Texture));
+                    debug.SetTexture("Splatmap 1 Texture", context.GetRenderTexture(ContextConstants.BufferSplatmap_1_Texture));
                     debug.SetTexture("Virual Splatmap 0", context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture));
                     debug.SetTexture("Virual Splatmap 1", context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture));
                     debug.SetTexture("Brush Result 0 Splatmap Texture", context.GetRenderTexture(ContextConstants.Splatmap_Brush_Result_0_Texture));

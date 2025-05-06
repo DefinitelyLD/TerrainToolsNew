@@ -21,6 +21,8 @@
         Compose,
         Tween,
         ComputeNormals,
-        TessellateGridMesh
+        TessellateGridMesh,
+
+        TweenSplats
     }
 }

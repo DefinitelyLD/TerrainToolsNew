@@ -150,6 +150,15 @@ namespace TerrainTools {
             var unityTerrainHeightmap = terrain.terrainData.heightmapTexture;
             var unityTerrainNormalmap = terrain.normalmapTexture;
 
+            Texture2D unitySplatmap0 = null;
+            Texture2D unitySplatmap1 = null;
+            int splatmapsCount = terrain.terrainData.alphamapTextureCount;
+            if (splatmapsCount > 0) {
+                Debug.Assert(splatmapsCount == 2, "Atleasts 5 layers must be present on terrain.");
+                unitySplatmap0 = terrain.terrainData.alphamapTextures[0];
+                unitySplatmap1 = terrain.terrainData.alphamapTextures[1];
+            }
+
             m_stopwatch.Reset();
             m_stopwatch.Start();
 
@@ -163,7 +172,7 @@ namespace TerrainTools {
 
             // tweening
             var tweener = new TerrainToolsTweener();
-            tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap);
+            tweener.TweenHeightmapPass(m_context, unityTerrainHeightmap, unitySplatmap0, unitySplatmap1);
 
             m_stopwatch.Stop();
 

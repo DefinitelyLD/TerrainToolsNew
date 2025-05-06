@@ -21,6 +21,8 @@
 #pragma kernel ComputeNormals
 #pragma kernel TessellateGridMesh
 
+#pragma kernel TweenSplats
+
 #define PI 3.14159265358979323846
 
 RWTexture2D<float4> OutputSplatmapTexture_0;
@@ -29,23 +31,11 @@ RWTexture2D<float4> OutputSplatmapTexture_1;
 RWTexture2D<float4> OutputBrushSplatmapTexture_0;
 RWTexture2D<float4> OutputBrushSplatmapTexture_1;
 
-SamplerState pointClampOutputSplatmapTexture_0Sampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = Clamp;
-    AddressV = Clamp;
-};
-
-
-SamplerState pointOutputSplatmapTexture_1Sampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = Clamp;
-    AddressV = Clamp;
-};
-
 Texture2D<float4> SplatmapTexture_0;
 Texture2D<float4> SplatmapTexture_1;
+
+Texture2D<float4> TweenStateSplatmapTexture_0;
+Texture2D<float4> TweenStateSplatmapTexture_1;
 
 int SplatmapId;
 int4 SplatmapChannelMask;
@@ -437,8 +427,8 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
     if (SplatmapId < 4)
     {
         float4 current = OutputBrushSplatmapTexture_0[id.xy];
-        current += BrushStrength * mask * float4(SplatmapChannelMask);
-        current -= BrushStrength * mask * float4(1 - SplatmapChannelMask);
+        current += BrushStrength * mask * float4(SplatmapChannelMask) * DeltaTime;
+        current -= BrushStrength * mask * float4(1 - SplatmapChannelMask) * DeltaTime;
         
         
         current = clamp(current, 0, 1);
@@ -447,9 +437,11 @@ void PaintBrush(uint3 id : SV_DispatchThreadID)
     else
     {
         float4 current = OutputBrushSplatmapTexture_1[id.xy];
-        current += BrushStrength * mask;
+        current += BrushStrength * mask * float4(SplatmapChannelMask) * DeltaTime;
+        current -= BrushStrength * mask * float4(1 - SplatmapChannelMask) * DeltaTime;
+        
+        
         current = clamp(current, 0, 1);
-            
         OutputBrushSplatmapTexture_1[id.xy] = current;
     }
 }
@@ -676,4 +668,27 @@ void TessellateGridMesh(uint3 id: SV_DispatchThreadID)
     OutputMeshIndices[baseIndex + 3] = i1;
     OutputMeshIndices[baseIndex + 4] = i2;
     OutputMeshIndices[baseIndex + 5] = i3;
+}
+
+[numthreads(32, 32, 1)]
+void TweenSplats(uint3 id : SV_DispatchThreadID)
+{
+    uint2 limits;
+    SplatmapTexture_0.GetDimensions(limits.x, limits.y);
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
+    float4 target0 = SplatmapTexture_0.Load(int3(id.x, id.y, 0));
+    float4 target1 = SplatmapTexture_1.Load(int3(id.x, id.y, 0));
+    
+    float4 current0 = TweenStateSplatmapTexture_0[id.xy];
+    float4 current1 = TweenStateSplatmapTexture_1[id.xy];
+    
+    float4 new0 = lerp(current0, target0, DeltaTime * TweenStrength);
+    float4 new1 = lerp(current1, target1, DeltaTime * TweenStrength);
+    
+    OutputBrushSplatmapTexture_0[id.xy] = new0;
+    OutputBrushSplatmapTexture_1[id.xy] = new1;
 }
