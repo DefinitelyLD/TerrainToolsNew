@@ -1,12 +1,11 @@
-﻿using log4net.Util;
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace TerrainTools {
 
     [TerrainBrush]
     public sealed class CurveyStripsTerrainBrush : TerrainBrush {
-        private const float ROTATE_SPEED = 8.0f;
+        private const float ROTATE_SPEED = 10.0f;
         private const int USER_BRUSH_X_SIZE = 8;
 
         private Vector2Int m_brushSize = Vector2Int.zero;
@@ -47,7 +46,6 @@ namespace TerrainTools {
                 0f,
                 mousePos.z - m_lastPointerPosition.z
             );
-
             if (delta.sqrMagnitude > 0.0001f) {
                 // Get angle between world forward and delta direction
                 float targetAngle = Mathf.Atan2(delta.x, delta.z) * Mathf.Rad2Deg;
@@ -57,9 +55,6 @@ namespace TerrainTools {
 
                 // Smooth the angle
                 m_newAngle = Mathf.LerpAngle(m_newAngle, targetAngle, ROTATE_SPEED * brushData.deltaTime);
-
-                // Apply rotation to the object (around Y-axis)
-                //transform.rotation = Quaternion.Euler(0f, m_angle, 0f);
             }
             m_lastPointerPosition = mousePos;
             m_angle = m_newAngle + 90.0f;

@@ -288,7 +288,7 @@ void RingsBrush(uint3 id : SV_DispatchThreadID)
     float2 uv = GetUV(id);
     uv.y = clamp(uv.y, 0, 1);
     
-    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * (BrushStripCount + 0.5) * PI * 2.0), 0));
+    float wave = sqrt(max(sin(uv.y * (BrushStripCount + 0.5) * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 
@@ -310,7 +310,7 @@ void CurveyStripsBrush(uint3 id : SV_DispatchThreadID)
     float2 uv = GetUV(id);
     uv.y = clamp(uv.y, 0, 1);
     
-    float wave = sqrt(max(sin((uv.y + (0.0 * PI)) * (BrushStripCount + 0.5) * PI * 2.0), 0));
+    float wave = sqrt(max(sin(uv.y * (BrushStripCount + 0.5) * PI * 2.0), 0));
 
     float newHeight = (wave * BrushHeight) * mask;
 
@@ -321,7 +321,34 @@ void CurveyStripsBrush(uint3 id : SV_DispatchThreadID)
 [numthreads(32, 32, 1)]
 void SpiralBrush(uint3 id : SV_DispatchThreadID)
 {
+    if (IsCulled(id))
+    {
+        return;
+    }
+     
+    float mask = GetBrushMaskValue(id);
+    mask = mask > 0.0 ? 1.0 : 0.0;
     
+    // tranlating origin to the centre
+    float2 pin = (float2) id.xy - (ActualBrushSize * 0.5f);
+    float mag = sqrt(pow(pin.x, 2.0) + pow(pin.y, 2.0));
+
+    // if it lies in dot radius.
+    if (mag > ActualBrushSize.x * 0.5f)
+        return;
+
+    // 0 to 1 value to samples, i.e to most left to most right,
+    float norm = 1.0 - (mag / (ActualBrushSize.x * 0.5f));
+    // the new height to set
+    float height = BrushHeight * (sqrt(norm));
+    
+    float currentHeight = OutputBrushHeightmapTexture[id.xy];
+
+    // do not degrade the already applied high position, else it will add height, then on next step remove height
+    if (currentHeight >= height)
+        return;
+        
+    OutputBrushHeightmapTexture[id.xy] = height;
 }
 
 [numthreads(32, 32, 1)]
