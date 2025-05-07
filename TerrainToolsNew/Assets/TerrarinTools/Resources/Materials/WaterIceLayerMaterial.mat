@@ -23,7 +23,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_Ice shader
+  m_Name: WaterIceLayerMaterial
   m_Shader: {fileID: -6465566751694194690, guid: 1f67b315c1ed7d6479a8a34bd88111ac, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -54,6 +54,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: a3fa2b3011378e049b45c18873ed7bcc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Heightmap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Mask:
         m_Texture: {fileID: 2800000, guid: 29ae4a487e9d3414d8293b67d61a1c74, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -72,6 +76,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_f70c6c961fc9415a80dee95a24883c17_Texture_1_Texture2D:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaterAreaMask:
+        m_Texture: {fileID: 2800000, guid: 29ae4a487e9d3414d8293b67d61a1c74, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -108,8 +116,10 @@ Material:
     - _ExcludeFromTUAndAA: 0
     - _Float: 8.75
     - _FresnelP_ower: 1
+    - _HeightOffse: 0
     - _MaterialID: 1
     - _MaterialTypeMask: 2
+    - _MaxHeight: 0
     - _NormalsStr: 0.1
     - _Opacity: 0
     - _OpaqueCullMode: 2
@@ -135,11 +145,12 @@ Material:
     - _SupportDecals: 1
     - _SurfaceType: 1
     - _TEs: 0
-    - _TessellationBackFaceCullEpsilon: 0
+    - _TessellationBackFaceCullEpsilon: -0.479
+    - _TessellationFactor: 10
     - _TessellationFactorMaxDistance: 62
     - _TessellationFactorMinDistance: 20.04
-    - _TessellationFactorTriangleSize: 60.4
-    - _TessellationMaxDisplacement: 0
+    - _TessellationFactorTriangleSize: 50
+    - _TessellationMaxDisplacement: 100
     - _TessellationMode: 0
     - _TessellationShapeFactor: 0.75
     - _TransmissionEnable: 1

@@ -6,6 +6,7 @@ namespace TerrainTools {
     public interface IBrushContext {
 
         WaterInstances GetWaterInstances();
+        Material GetWaterIceLayerMaterial();
         Material GetWaterDeformDecalMaterial();
         bool IsHeightmapCompositiveExists(string name);
         void RegisterHeightmapCompositive(string name);

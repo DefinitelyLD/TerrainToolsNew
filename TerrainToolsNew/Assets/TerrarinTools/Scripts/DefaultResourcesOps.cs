@@ -19,6 +19,7 @@ namespace TerrainTools {
             var computeShader = context.GetCompute();
             var waterInstances = context.GetWaterInstances();
             var waterDeformMaterial = context.GetWaterDeformDecalMaterial();
+            var waterIceLayerMaterial = context.GetWaterIceLayerMaterial(); 
 
             var terrain = context.GetTerrain(); 
             var brushData = context.GetBrushData();
@@ -599,9 +600,19 @@ namespace TerrainTools {
             }
             waterDeformMaterial.SetTexture("_Heightmap", terrain.terrainData.heightmapTexture);
             waterDeformMaterial.SetTexture("_Mask", finalWaterMaskTexture);
-            float waterHeightOffset = 1f / terrainSize.y;
+            float waterHeightOffset = 0.4f / terrainSize.y;
             waterDeformMaterial.SetFloat("_Offset", waterHeightOffset);
 
+            float waterIceHeightOffset = 0.5f / terrainSize.y;
+            float heightmapTexelSize = terrainSize.x / heightmapSize.x;
+
+            waterIceLayerMaterial.SetTexture("_Mask", maskTexture);
+            waterIceLayerMaterial.SetTexture("_WaterAreaMask", finalWaterMaskTexture);
+            waterIceLayerMaterial.SetTexture("_Heightmap", terrain.terrainData.heightmapTexture);
+            waterIceLayerMaterial.SetFloat("_MaxHeight", terrainSize.y);
+            waterIceLayerMaterial.SetFloat("_HeightOffset", waterIceHeightOffset);
+            waterIceLayerMaterial.SetFloat("_NormalGenSampleOffset", heightmapTexelSize);
+            waterIceLayerMaterial.SetFloat("_NormalGenStrength", terrainSize.x);
 
             //--
 

@@ -353,6 +353,7 @@ namespace TerrainTools {
             waterInstances.WaterSurface = GameObject.Instantiate(m_resources.WaterPrefabs.WaterSurfacePrefab, terrain.transform).GetComponent<WaterSurface>();
             waterInstances.WaterExcluder = GameObject.Instantiate(m_resources.WaterPrefabs.WaterExcluderPrefab, terrain.transform).GetComponent<WaterExcluder>();
             waterInstances.WaterDeformDecal = GameObject.Instantiate(m_resources.WaterPrefabs.WaterDeformDecalPrefab, terrain.transform).GetComponent<WaterDecal>();
+            waterInstances.IceLayer = GameObject.Instantiate(m_resources.WaterPrefabs.IceLayerPrefab, terrain.transform).GetComponent<IceLayer>();
 
             m_context = new TerrainToolsContext(terrain, m_resources, THREAD_GROUP_SIZE, debugView, waterInstances);
 

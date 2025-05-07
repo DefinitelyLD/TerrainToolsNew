@@ -7,5 +7,6 @@ namespace TerrainTools {
         public GameObject WaterSurfacePrefab;
         public GameObject WaterDeformDecalPrefab;
         public GameObject WaterExcluderPrefab;
+        public GameObject IceLayerPrefab;
     }
 }

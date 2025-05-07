@@ -415,5 +415,9 @@ namespace TerrainTools {
         public WaterInstances GetWaterInstances() {
             return m_waterInstances;            
         }
+
+        public Material GetWaterIceLayerMaterial() {
+            return m_waterInstances.IceLayer.GetMaterial();
+        }
     }
 }

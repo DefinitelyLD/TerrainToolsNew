@@ -34,6 +34,10 @@ namespace TerrainTools {
 
         [Header("Debug Settings:")]
         [Tooltip("Whether to turn on debug mode.")]
+#if UNITY_EDITOR
         public bool DebugMode = false;
+#else
+        public const bool DebugMode = false;
+#endif
     }
 }
