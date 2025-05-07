@@ -24,12 +24,13 @@
         public const string PatternTexture = "PatternTexture";
         public const string PatternBrushHeightmapResultTexture = "PatternBrushTexture";
 
-        public const string VirtualWaterMaskTexture = "VirtualWaterMaskTexture";
-        public const string FinalWaterMaskTexture = "FinalWaterMaskTexture";
+        public const string AdditiveWaterDensitymapTexture = "VirtualWaterDensitymapTexture";
         public const string BufferWaterMaskTexture = "BufferWaterMaskTexture";
         public const string WaterBrushResultMaskTexture = "WaterBrushMaskResultTexture";
+        public const string FinaWatermapTexture = "FinalWatermapTexture";
 
-        public const string WaterDesitymapTexture = "WaterDensitymapTexture";
+        public const string WaterDensitymapTexture = "WaterDensitymapTexture";
+        public const string BufferWaterDensitymapTexture = "BufferWaterDensityMaskTexture";
         public const string OutputWaterCurrentmapTexture = "OutputWaterCurrentmapTexture";
         public const string OutputWaterFoamMaskTexture = "OutputWaterFoamMaskTexture";
         public const string WaterFoamMaskTexture = "WaterFoamMaskTexture";

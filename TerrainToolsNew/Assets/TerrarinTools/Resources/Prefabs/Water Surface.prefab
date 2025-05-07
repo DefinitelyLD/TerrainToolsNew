@@ -122,7 +122,7 @@ MonoBehaviour:
   foam: 1
   foamResolution: 512
   foamPersistenceMultiplier: 1
-  foamCurrentInfluence: 0.6
+  foamCurrentInfluence: 1
   foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.2
   foamSmoothness: 0.3

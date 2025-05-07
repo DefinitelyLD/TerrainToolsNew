@@ -16,7 +16,7 @@ namespace TerrainTools {
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
 
             var waterBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
-            var virtualWaterTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
+            var additiveWater = context.GetRenderTexture(ContextConstants.AdditiveWaterDensitymapTexture);
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
@@ -25,7 +25,7 @@ namespace TerrainTools {
             slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
             commandBuffer.CopyTexture(
-                virtualWaterTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
+                additiveWater, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
                 waterBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
         }
 
@@ -63,11 +63,11 @@ namespace TerrainTools {
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.WaterLowerBrush, waterBrushDispatchSize.x, waterBrushDispatchSize.y, waterBrushDispatchSize.z);
 
-            var virtualWaterTexture = context.GetRenderTexture(ContextConstants.VirtualWaterMaskTexture);
+            var waterAdditivemap = context.GetRenderTexture(ContextConstants.AdditiveWaterDensitymapTexture);
             var waterBrushMaskResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
 
             var brushData = context.GetBrushData();
-            var heightmapSize = virtualWaterTexture.GetSize();
+            var heightmapSize = waterAdditivemap.GetSize();
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
@@ -76,7 +76,7 @@ namespace TerrainTools {
             slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
             commandBuffer.CopyTexture(waterBrushMaskResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                virtualWaterTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                waterAdditivemap, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
         }
 
         public override void CopyResults(IBrushContext context) {

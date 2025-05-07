@@ -774,5 +774,10 @@ void SimulateWater(uint3 id : SV_DispatchThreadID)
     uint2 limits;
     OutputDensitymap.GetDimensions(limits.x, limits.y);
     
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
     
 }
