@@ -61,6 +61,7 @@ namespace TerrainTools {
         private readonly Stopwatch m_stopwatch;
 
         private readonly FenceManager m_fenceManager;
+        private bool m_terrainTapped;
 
         public void UpdateData(TerrainToolsManagerUpdateData data) {
 
@@ -182,6 +183,12 @@ namespace TerrainTools {
 
             //-----------------------------------
 
+            if (m_inputModule.IsMouseLeftClickUp() && m_terrainTapped) {
+                m_modes[m_currentModeIndex].OnBrushUp(m_context);
+
+                m_terrainTapped = false;
+            }
+
             var realPointerPosition = m_inputModule.GetMousePosition();
             m_pointerPosition = Vector2.Lerp(m_pointerPosition, realPointerPosition, m_brushFallback);
             //m_pointerPosition = realPointerPosition;
@@ -193,6 +200,10 @@ namespace TerrainTools {
             }
 
             if (hit.transform.gameObject != terrain.gameObject) {
+                SubmitCommandBuffer(commandBuffer);
+                return;
+            }
+            if (eventSystem.IsPointerOverGameObject()) {
                 SubmitCommandBuffer(commandBuffer);
                 return;
             }
@@ -219,15 +230,17 @@ namespace TerrainTools {
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
-            if (m_inputModule.IsMouseLeftClickHold() == false && m_inputModule.IsMouseLeftClickUp() == false) {
+            if (m_inputModule.IsMouseLeftClickDown()) {
+                m_terrainTapped = true;
+
+                m_modes[m_currentModeIndex].OnBrushDown(m_context);
+            }
+
+            if (m_terrainTapped == false) {
                 SubmitCommandBuffer(commandBuffer);
                 return;
             }
 
-            if (eventSystem.IsPointerOverGameObject()) {
-                SubmitCommandBuffer(commandBuffer);
-                return;
-            }
             RecordBrushCommands(commandBuffer);
             SubmitCommandBuffer(commandBuffer);
         }
@@ -239,15 +252,7 @@ namespace TerrainTools {
             var currentMode = m_modes[m_currentModeIndex];
             // recording commands from current brush mode
             currentMode.Prepare(m_context);
-
-            if (m_inputModule.IsMouseLeftClickDown())
-                currentMode.OnBrushDown(m_context);
-
             currentMode.OnBrushUpdate(m_context);
-
-            if (m_inputModule.IsMouseLeftClickUp())
-                currentMode.OnBrushUp(m_context);
-
             currentMode.CopyResults(m_context);
 
             m_stopwatch.Stop();
