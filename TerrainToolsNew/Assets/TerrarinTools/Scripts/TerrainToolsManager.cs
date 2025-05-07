@@ -3,7 +3,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
@@ -220,7 +219,7 @@ namespace TerrainTools {
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
-            if (m_inputModule.IsMouseLeftClickHold() == false) {
+            if (m_inputModule.IsMouseLeftClickHold() == false && m_inputModule.IsMouseLeftClickUp() == false) {
                 SubmitCommandBuffer(commandBuffer);
                 return;
             }
