@@ -23,7 +23,15 @@
 
 #pragma kernel TweenSplats
 
+#pragma kernel GenerateCurrentmap
+#pragma kernel SimulateWater
+
 #define PI 3.14159265358979323846
+
+RWTexture2D<float> OutputDensitymap;
+RWTexture2D<float> OutputFoamMask;
+
+RWTexture2D<float4> OutputCurrentmap;
 
 RWTexture2D<float4> OutputSplatmapTexture_0;
 RWTexture2D<float4> OutputSplatmapTexture_1;
@@ -689,4 +697,82 @@ void TweenSplats(uint3 id : SV_DispatchThreadID)
 
     OutputBrushSplatmapTexture_0[id.xy] = new0;
     OutputBrushSplatmapTexture_1[id.xy] = new1;
+}
+
+[numthreads(32, 32, 1)]
+void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
+{
+    uint2 limits;
+    HeightmapTexture.GetDimensions(limits.x, limits.y);
+    
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
+    float current = HeightmapTexture.Load(int3(id.x, id.y, 0));
+    float top = HeightmapTexture.Load(int3(id.x, id.y + 1, 0));
+    float bottom = HeightmapTexture.Load(int3(id.x, id.y -1, 0));
+    float right = HeightmapTexture.Load(int3(id.x + 1, id.y, 0));
+    float left = HeightmapTexture.Load(int3(id.x -1, id.y, 0));
+    
+    bool leftBorder = id.x -1 < 0;
+    bool rightBorder = id.x >= limits.x;
+    bool topBorder = id.y - 1 < 0;
+    bool bottomBorder = id.y >= limits.y;
+    
+    left = leftBorder ? 1.0 : left;
+    right = rightBorder ? 1.0 : right;
+    top = topBorder ? 1.0 : top;
+    bottom = topBorder ? 1.0 : bottom;
+    
+    float differences[5] =
+    {
+        current - current,
+        current - top,
+        current - bottom,
+        current - right,
+        current - left
+    };
+    
+    uint index = 0;
+    for (uint i = 1; i < 5; i++)
+    {
+        if (differences[i] > differences[index])
+        {
+            index = i;
+        }
+    }
+
+    float4 currents[5] =
+    {
+        float4(0, 0, 0, 1),
+             
+        float4(0.5, 1, 1, 1),
+        float4(0.5, 0, 1, 1),
+        float4(1, 0.5, 1, 1),
+        float4(0, 0.5, 1, 1)
+    };
+    
+    float foams[5] =
+    {
+        0,
+        
+        0.5 - abs(differences[1]) * 1.0,
+        0.5 - abs(differences[2]) * 1.0,
+        0.5 - abs(differences[3]) * 1.0,
+        0.5 - abs(differences[4]) * 1.0
+    };
+
+    OutputCurrentmap[id.xy] = currents[index];
+    OutputFoamMask[id.xy] = foams[index];
+}
+
+[numthreads(32, 32, 1)]
+void SimulateWater(uint3 id : SV_DispatchThreadID)
+{
+    uint2 limits;
+    OutputDensitymap.GetDimensions(limits.x, limits.y);
+    
+    
 }

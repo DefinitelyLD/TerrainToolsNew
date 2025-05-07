@@ -23,6 +23,8 @@
         ComputeNormals,
         TessellateGridMesh,
 
-        TweenSplats
+        TweenSplats,
+        GenerateCurrentmap,
+        SimulateWater
     }
 }

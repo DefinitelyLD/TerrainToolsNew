@@ -5,6 +5,27 @@ using UnityEngine.Experimental.Rendering;
 using Debug = UnityEngine.Debug;
 
 namespace TerrainTools {
+    public struct TerrainToolsWaterPasses {
+        public readonly void GenerateWaterMapsPass(TerrainToolsContext context, RenderTexture unityHeightmap) {
+            var commandBuffer = context.GetCommandBuffer();
+            var computeShader = context.GetCompute();
+
+            var currentMap = context.GetRenderTexture(ContextConstants.OutputWaterCurrentmapTexture);
+            var outputFoamMask = context.GetRenderTexture(ContextConstants.OutputWaterFoamMaskTexture);
+            var foamMask = context.GetTexture2D(ContextConstants.WaterFoamMaskTexture);
+
+            var dispatchSize = context.GetDispatchSize(currentMap.GetSize());
+
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.GenerateCurrentmap, "OutputCurrentmap", currentMap);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.GenerateCurrentmap, "HeightmapTexture", unityHeightmap);
+            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.GenerateCurrentmap, "OutputFoamMask", outputFoamMask);
+
+            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.GenerateCurrentmap, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+
+            commandBuffer.CopyTexture(outputFoamMask, foamMask);
+        }
+    }
+
     public struct DefaultResourcesOps {
         private const string HOLOGRAM_MESH_VERTICES_BUFFER = "HologramMeshVerticesBuffer";
         private const string HOLOGRAM_MESH_INDICIES_BUFFER = "HologramMeshIndicesBuffer";
@@ -588,7 +609,47 @@ namespace TerrainTools {
                     context.DestroyRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture);
                     splatmapBrushResult1Texture = context.CreateRenderTexture(ContextConstants.Splatmap_Brush_Result_1_Texture, actualBrushSize, alphamapFormat, true);
                 }
-                //--
+                //--           
+            }
+            //--
+            if (context.IsRenderTextureExists(ContextConstants.OutputWaterCurrentmapTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.OutputWaterCurrentmapTexture, heightmapSize, GraphicsFormat.R8G8B8A8_UNorm, true);
+            }
+            var waterCurrentmap = context.GetRenderTexture(ContextConstants.OutputWaterCurrentmapTexture);
+            if (waterCurrentmap.CheckSize(heightmapSize) == false) {
+                context.DestroyRenderTexture(ContextConstants.OutputWaterCurrentmapTexture);
+                waterCurrentmap = context.CreateRenderTexture(ContextConstants.OutputWaterCurrentmapTexture, heightmapSize, GraphicsFormat.R8G8B8A8_UNorm, true);
+            }
+            //--
+
+            //--           
+            if (context.IsRenderTextureExists(ContextConstants.WaterDesitymapTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.WaterDesitymapTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+            var waterDesitymap = context.GetRenderTexture(ContextConstants.WaterDesitymapTexture);
+            if (waterDesitymap.CheckSize(heightmapSize) == false) {
+                context.DestroyRenderTexture(ContextConstants.WaterDesitymapTexture);
+                waterDesitymap = context.CreateRenderTexture(ContextConstants.WaterDesitymapTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+            //--
+
+            if (context.IsRenderTextureExists(ContextConstants.OutputWaterFoamMaskTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.OutputWaterFoamMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+            var outputWaterFoamMask = context.GetRenderTexture(ContextConstants.OutputWaterFoamMaskTexture);
+            if (outputWaterFoamMask.CheckSize(heightmapSize) == false) {
+                context.DestroyRenderTexture(ContextConstants.OutputWaterFoamMaskTexture);
+                outputWaterFoamMask = context.CreateRenderTexture(ContextConstants.OutputWaterFoamMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat, true);
+            }
+            //--
+            if (context.IsTexture2DExists(ContextConstants.WaterFoamMaskTexture) == false) {
+                context.CreateTexture2D(ContextConstants.WaterFoamMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat);
+            }
+            var waterFoamMask = context.GetTexture2D(ContextConstants.WaterFoamMaskTexture);
+
+            if (waterFoamMask.CheckSize(heightmapSize) == false) {
+                context.DestroyTexture2D(ContextConstants.WaterFoamMaskTexture);
+                waterFoamMask = context.CreateTexture2D(ContextConstants.WaterFoamMaskTexture, heightmapSize, GraphicsFormat.R32_SFloat);
             }
             //--
 
@@ -602,6 +663,7 @@ namespace TerrainTools {
             waterDeformMaterial.SetTexture("_Mask", finalWaterMaskTexture);
             float waterHeightOffset = 0.4f / terrainSize.y;
             waterDeformMaterial.SetFloat("_Offset", waterHeightOffset);
+            waterDeformMaterial.SetTexture("_Currentmap", waterCurrentmap);
 
             float waterIceHeightOffset = 0.5f / terrainSize.y;
             float heightmapTexelSize = terrainSize.x / heightmapSize.x;
@@ -614,6 +676,21 @@ namespace TerrainTools {
             waterIceLayerMaterial.SetFloat("_NormalGenSampleOffset", heightmapTexelSize);
             waterIceLayerMaterial.SetFloat("_NormalGenStrength", terrainSize.x);
 
+            waterInstances.WaterSurface.largeCurrentMap = waterCurrentmap;
+            waterInstances.WaterSurface.supportLargeCurrent = true;
+            waterInstances.WaterSurface.largeCurrentRegionExtent = new Vector2(terrainSize.x, terrainSize.z);
+            //waterInstances.WaterSurface.largeCurrentRes = UnityEngine.Rendering.HighDefinition.WaterSurface.WaterDecalRegionResolution.Resolution512;
+            waterInstances.WaterSurface.largeCurrentSpeedValue = 10f;
+            waterInstances.WaterSurface.largeWindSpeed = 0.0f;
+
+            waterInstances.WaterSurface.simulationFoamMask = waterFoamMask;
+            waterInstances.WaterSurface.simulationFoamMaskExtent = new Vector2(terrainSize.x, terrainSize.z);
+            //waterInstances.WaterSurface.foamResolution = UnityEngine.Rendering.HighDefinition.WaterSurface.WaterDecalRegionResolution.Resolution512;
+            waterInstances.WaterSurface.supportSimulationFoamMask = true;
+
+/*            waterInstances.WaterSurface.simulationMask = true;
+            waterInstances.WaterSurface.waterMask = maskTexture;
+            waterInstances.WaterSurface.waterMaskExtent = new Vector2(terrainSize.x, terrainSize.z);*/
             //--
 
             if (context.IsHeightmapCompositiveExists(ContextConstants.PatternTexture) == false) {
@@ -643,10 +720,14 @@ namespace TerrainTools {
                     debug.SetTexture("Unity Terrain Splatmap 1", terrain.terrainData.alphamapTextures[1]);
                 }
 
+                debug.SetTexture("Output Water Foam Mask", outputWaterFoamMask);
+                debug.SetTexture("Water Foam Mask", waterFoamMask);
                 debug.SetTexture("Buffer Watermask Texture", bufferWaterMaskTexture);
                 debug.SetTexture("Virtual Water Mask Result Texture", virtualWaterMaskTexture);
                 debug.SetTexture("Final Water Mask Result Texture", finalWaterMaskTexture);
                 debug.SetTexture("Water Mask Brush Result Texture", waterBrushMaskResultTexture);
+                debug.SetTexture("Water Currentmap Output", waterCurrentmap);
+                debug.SetTexture("Water Desnitymap Output", waterDesitymap);
 
                 debug.SetTexture("Pattern Texture", patternTexture);
                 debug.SetTexture("Pattern BrushHeightmap Result Texture", patternBrushHeightmapResultTexture);

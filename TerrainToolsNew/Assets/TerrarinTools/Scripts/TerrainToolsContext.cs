@@ -186,6 +186,8 @@ namespace TerrainTools {
             desc.msaaSamples = 1;
 
             var renderTexture = new RenderTexture(desc);
+            renderTexture.Create();
+
             m_renderTextures.Add(name, renderTexture);
 
             return renderTexture;

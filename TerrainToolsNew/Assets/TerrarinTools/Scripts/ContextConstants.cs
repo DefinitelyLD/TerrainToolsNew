@@ -28,7 +28,11 @@
         public const string FinalWaterMaskTexture = "FinalWaterMaskTexture";
         public const string BufferWaterMaskTexture = "BufferWaterMaskTexture";
         public const string WaterBrushResultMaskTexture = "WaterBrushMaskResultTexture";
-        //public const string WATER_HEIGHTMAP_TEXTURE = "WaterHeightmapTexture";
+
+        public const string WaterDesitymapTexture = "WaterDensitymapTexture";
+        public const string OutputWaterCurrentmapTexture = "OutputWaterCurrentmapTexture";
+        public const string OutputWaterFoamMaskTexture = "OutputWaterFoamMaskTexture";
+        public const string WaterFoamMaskTexture = "WaterFoamMaskTexture";
 
         public const string WaterExclusionMesh = "WaterExclusionMesh";
 

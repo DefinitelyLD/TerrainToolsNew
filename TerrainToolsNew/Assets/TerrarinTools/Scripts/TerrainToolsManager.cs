@@ -181,6 +181,18 @@ namespace TerrainTools {
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
+
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+
+            var waterPasses = new TerrainToolsWaterPasses();
+            waterPasses.GenerateWaterMapsPass(m_context, unityTerrainHeightmap);
+
+            TerrainToolsUtils.Log($"Water gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+            m_stopwatch.Stop();
             //-----------------------------------
 
             if (m_inputModule.IsMouseLeftClickUp() && m_terrainTapped) {
@@ -271,6 +283,8 @@ namespace TerrainTools {
             m_fenceManager.RegisterFence(fence);
 
             Graphics.ExecuteCommandBuffer(commandBuffer);
+            //HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
+            //HDRPTerrainToolsInjectionPass.SubmitPass = true;
 
             m_stopwatch.Stop();
             TerrainToolsUtils.Log($"Brush gpu commands immediate execution took: {m_stopwatch.ElapsedMilliseconds} ms" +
