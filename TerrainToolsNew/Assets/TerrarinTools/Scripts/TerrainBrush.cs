@@ -136,6 +136,7 @@ namespace TerrainTools {
             var heightmapSize = unityTerrainHeightmap.GetSize();
 
             var maskTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+            var terrainMask = context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
             var terrainPosition = terrain.GetPosition();
             var offsetPosition = (terrainSize.x / heightmapSize.x) * 0.5f;
@@ -163,6 +164,7 @@ namespace TerrainTools {
             hologramMaterial.SetVector("_Bounds", bounds);
             hologramMaterial.SetTexture("_Mask", maskTexture);
             hologramMaterial.SetFloat("_Angle", brushData.angle);
+            hologramMaterial.SetTexture("_TerrainMask", terrainMask);
 
             Graphics.DrawMesh(hologramMesh, terrainPosition, Quaternion.identity, hologramMaterial, terrain.gameObject.layer, Camera.main);
         }

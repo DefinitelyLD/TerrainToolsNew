@@ -210,6 +210,7 @@ namespace TerrainTools {
             m_secondBrushPosition = brushSizingOps.BrushPointerPositionToTexelPosition(pointerPosition, m_secondActualBrushSize, terrainSize, heightmapSize.x);
 
             var maskTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+            var terrainMask = context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
             var terrainPosition = terrain.GetPosition();
             var offsetPosition = (terrainSize.x / heightmapSize.x) * 0.5f;
@@ -232,12 +233,11 @@ namespace TerrainTools {
             bounds.z = bounds.x + (m_secondBrushSize.x / (float)heightmapSize.x);
             bounds.w = bounds.y + (m_secondBrushSize.y / (float)heightmapSize.y);
 
-            Debug.Log(bounds);
-
             hologramMaterial.SetTexture("_Heightmap", unityTerrainHeightmap);
             hologramMaterial.SetVector("_TerrainSize", terrainSize);
             hologramMaterial.SetVector("_Bounds", bounds);
             hologramMaterial.SetTexture("_Mask", maskTexture);
+            hologramMaterial.SetTexture("_TerrainMask", terrainMask);
 
             hologramMaterial.SetFloat("_Angle", 0);
 
@@ -264,6 +264,7 @@ namespace TerrainTools {
             m_brushPosition = brushSizingOps.BrushPointerPositionToTexelPosition(pointerPosition, m_actualBrushSize, terrainSize, heightmapSize.x);
 
             var maskTexture = context.GetRenderTexture(ContextConstants.TerrainBrushMaskTexture);
+            var terrainMask = context.GetRenderTexture(ContextConstants.TerrainMaskTexture);
 
             var terrainPosition = terrain.GetPosition();
             var offsetPosition = (terrainSize.x / heightmapSize.x) * 0.5f;
@@ -290,6 +291,7 @@ namespace TerrainTools {
             hologramMaterial.SetVector("_TerrainSize", terrainSize);
             hologramMaterial.SetVector("_Bounds", bounds);
             hologramMaterial.SetTexture("_Mask", maskTexture);
+            hologramMaterial.SetTexture("_TerrainMask", terrainMask);
 
             hologramMaterial.SetFloat("_Angle", 0);
 

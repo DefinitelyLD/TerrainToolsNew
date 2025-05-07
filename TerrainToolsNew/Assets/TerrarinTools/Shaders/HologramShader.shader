@@ -21,6 +21,7 @@ Shader "TerrainTools/HologramShader"
 
             sampler2D _Heightmap;
             sampler2D _Mask;
+            sampler2D _TerrainMask;
 
             float4 _TerrainSize;
             float4 _Bounds;
@@ -79,6 +80,11 @@ Shader "TerrainTools/HologramShader"
 
                 // Check if the rotated UV is inside the bounds
                 if(rotatedUV.x < _Bounds.x || rotatedUV.x > _Bounds.z || rotatedUV.y < _Bounds.y || rotatedUV.y > _Bounds.w) {
+                    discard;
+                }
+
+                float terrainMask = tex2D(_TerrainMask, uv);
+                if(terrainMask < 0.1){
                     discard;
                 }
 
