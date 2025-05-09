@@ -187,7 +187,7 @@ namespace TerrainTools {
 
             var waterPasses = new TerrainToolsWaterPasses();
             waterPasses.SimulatePass(m_context, unityTerrainHeightmap);
-            waterPasses.GenerateWaterMapsPass(m_context, unityTerrainHeightmap);
+            //waterPasses.GenerateWaterMapsPass(m_context, unityTerrainHeightmap);
 
             TerrainToolsUtils.Log($"Water gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
@@ -275,7 +275,7 @@ namespace TerrainTools {
         }
 
         private void SubmitCommandBuffer(CommandBuffer commandBuffer) {
-            commandBuffer.CopyTexture(m_context.GetTerrain().terrainData.heightmapTexture, m_context.GetTexture2D(ContextConstants.APIGetHeightTexture));
+            //commandBuffer.CopyTexture(m_context.GetTerrain().terrainData.heightmapTexture, m_context.GetTexture2D(ContextConstants.APIGetHeightTexture));
 
             m_stopwatch.Reset();
             m_stopwatch.Start();

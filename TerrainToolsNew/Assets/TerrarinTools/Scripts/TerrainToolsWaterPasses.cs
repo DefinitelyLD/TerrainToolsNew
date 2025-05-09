@@ -34,7 +34,7 @@ namespace TerrainTools {
             commandBuffer.SetRenderTarget(outputFoamMask);
             commandBuffer.ClearRenderTarget(false, true, Color.black);
 
-            for (var i = 0; i < 16; i++) {
+            for (var i = 0; i < 32; i++) {
                 commandBuffer.CopyTexture(waterDensitymap, finalWaterDensitymap);
 
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.SimulateWaterA, dispatchSize.x, dispatchSize.y, dispatchSize.z);

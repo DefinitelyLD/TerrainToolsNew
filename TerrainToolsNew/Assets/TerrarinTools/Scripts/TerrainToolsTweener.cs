@@ -29,8 +29,6 @@ namespace TerrainTools {
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, heightmapDispatchSize.x, heightmapDispatchSize.y, heightmapDispatchSize.z);
             commandBuffer.CopyTexture(bufferHeightmap, outputHeightmap);
 
-            return;
-
             if (outputSplat0 != null) {
 
                 commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.TweenSplats, "SplatmapTexture_0", virtualSplatmap0);
@@ -45,14 +43,14 @@ namespace TerrainTools {
                 var splatmapDispatchSize = context.GetDispatchSize(bufferSplatmap0.GetSize());
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TweenSplats, splatmapDispatchSize.x, splatmapDispatchSize.y, splatmapDispatchSize.z);
 
-                //commandBuffer.CopyTexture(virtualSplatmap0, 0, 0, bufferSplatmap0, 0, 0);
-                //commandBuffer.CopyTexture(virtualSplatmap1, 0, 0, bufferSplatmap1, 0, 0);
+                commandBuffer.CopyTexture(virtualSplatmap0, 0, 0, bufferSplatmap0, 0, 0);
+                commandBuffer.CopyTexture(virtualSplatmap1, 0, 0, bufferSplatmap1, 0, 0);
 
                 commandBuffer.GenerateMips(bufferSplatmap0);
                 commandBuffer.GenerateMips(bufferSplatmap1);
 
-                commandBuffer.CopyTexture(bufferSplatmap0, outputSplat0);
-                commandBuffer.CopyTexture(bufferSplatmap1, outputSplat1);
+                //commandBuffer.CopyTexture(bufferSplatmap0, outputSplat0);
+                //commandBuffer.CopyTexture(bufferSplatmap1, outputSplat1);
             }
         }
     }

@@ -682,13 +682,14 @@ namespace TerrainTools {
             //float waterHeightOffset = 0.4f / terrainSize.y;
             //waterDeformMaterial.SetFloat("_Offset", waterHeightOffset);
 
-            float waterIceHeightOffset = 0.5f / terrainSize.y;
+            float waterIceHeightOffset = 0.1f / terrainSize.y;
             float heightmapTexelSize = terrainSize.x / heightmapSize.x;
 
             waterIceLayerMaterial.SetTexture("_Mask", maskTexture);
-            waterIceLayerMaterial.SetTexture("_WaterAreaMask", waterDesitymap);
+            waterIceLayerMaterial.SetTexture("_WaterAreaMask", finalWaterDensitymap);
             waterIceLayerMaterial.SetTexture("_Heightmap", terrain.terrainData.heightmapTexture);
             waterIceLayerMaterial.SetFloat("_MaxHeight", terrainSize.y);
+            waterIceLayerMaterial.SetFloat("_Edge", 0.01f / terrainSize.y);
             waterIceLayerMaterial.SetFloat("_HeightOffset", waterIceHeightOffset);
             waterIceLayerMaterial.SetFloat("_NormalGenSampleOffset", heightmapTexelSize);
             waterIceLayerMaterial.SetFloat("_NormalGenStrength", terrainSize.x);
