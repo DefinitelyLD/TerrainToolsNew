@@ -126,6 +126,7 @@ namespace TerrainTools {
             newBrushData.alphamapActualBrushSize = splatmapActualBrushSize;
             newBrushData.alphamapBrushSize = splatmapTexelBrushSize;
             newBrushData.splatIndex = m_splatIndex;
+            newBrushData.waterSimFactor = m_waterSimFactor;
 
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
             newBrushData.brushStrength = m_brushStrength;
