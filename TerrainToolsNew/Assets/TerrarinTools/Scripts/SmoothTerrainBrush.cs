@@ -27,7 +27,7 @@ namespace TerrainTools {
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SmoothBrush, "BrushMaskTexture", brushShapeTexture);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SmoothBrush, "OutputBrushHeightmapTexture", outputBrushHeightmapTexture);
 
-            commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", brushData.brushStrength);
+            commandBuffer.SetComputeFloatParam(computeShader, "BrushStrength", Mathf.RoundToInt(brushData.brushStrength));
             commandBuffer.SetComputeFloatParam(computeShader, "BrushAngle", brushData.angle);
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
 

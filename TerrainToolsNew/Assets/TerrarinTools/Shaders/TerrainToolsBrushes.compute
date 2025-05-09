@@ -24,11 +24,17 @@
 #pragma kernel TweenSplats
 
 #pragma kernel GenerateCurrentmap
-#pragma kernel SimulateWater
+#pragma kernel SimulateWaterA
+#pragma kernel SimulateWaterB
 
 #define PI 3.14159265358979323846
+#define EPSILON 1e-6
 
-RWTexture2D<float> OutputDensitymap;
+RWTexture2D<float> OutputDensitymapTexture;
+RWTexture2D<float4> OutputPrepassDensityTexture;
+
+Texture2D<float> DensitymapTexture;
+
 RWTexture2D<float> OutputFoamMask;
 
 RWTexture2D<float4> OutputCurrentmap;
@@ -457,20 +463,17 @@ void WaterRaiseBrush(uint3 id : SV_DispatchThreadID)
 {
     if (IsCulled(id))
     {
-        return;
+        return; 
     }
     
     float mask = GetBrushMaskValue(id);
-    mask = mask > 0.0 ? 1.0 : 0.0;
     
-    if (mask == 0.0)
-    {
-        return;
-    }
-   
-    float newValue = 1;
     
-    OutputBrushHeightmapTexture[id.xy] = newValue;
+    float current = OutputBrushHeightmapTexture[id.xy];
+    current += BrushStrength * DeltaTime * mask;
+    
+    current = clamp(current, 0, 1);
+    OutputBrushHeightmapTexture[id.xy] = current;
 }
 
 [numthreads(32, 32, 1)]
@@ -482,16 +485,13 @@ void WaterLowerBrush(uint3 id : SV_DispatchThreadID)
     }
     
     float mask = GetBrushMaskValue(id);
-    mask = mask > 0.0 ? 1.0 : 0.0;
     
-    if (mask == 0.0)
-    {
-        return;
-    }
-   
-    float newValue = 0;
     
-    OutputBrushHeightmapTexture[id.xy] = newValue;
+    float current = OutputBrushHeightmapTexture[id.xy];
+    current -= BrushStrength * DeltaTime * mask;
+    
+    current = clamp(current, 0, 1);
+    OutputBrushHeightmapTexture[id.xy] = current;
 }
 
 
@@ -710,22 +710,66 @@ void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
         return;
     }
     
+    const int sampleCount = 4;
+    int currentTopSample = 0;
+    int currentBottomSample = 0;
+    int currentRightSample = 0;
+    int currentLeftSample = 0;
+    
     float current = HeightmapTexture.Load(int3(id.x, id.y, 0));
-    float top = HeightmapTexture.Load(int3(id.x, id.y + 1, 0));
-    float bottom = HeightmapTexture.Load(int3(id.x, id.y -1, 0));
-    float right = HeightmapTexture.Load(int3(id.x + 1, id.y, 0));
-    float left = HeightmapTexture.Load(int3(id.x -1, id.y, 0));
+    float top;
+    float bottom;
+    float right;
+    float left;
     
-    bool leftBorder = id.x -1 < 0;
-    bool rightBorder = id.x >= limits.x;
-    bool topBorder = id.y - 1 < 0;
-    bool bottomBorder = id.y >= limits.y;
+    int3 myIndex = int3(id.xy, 0);
     
-    left = leftBorder ? 1.0 : left;
-    right = rightBorder ? 1.0 : right;
-    top = topBorder ? 1.0 : top;
-    bottom = topBorder ? 1.0 : bottom;
+    for (int j = 1; j < sampleCount; ++j)
+    {
+        int3 index = int3(myIndex.x, myIndex.y + j, 0);
+        
+        if (index.y >= (int)limits.y)
+            break;
+        
+        top += HeightmapTexture.Load(index);
+        currentTopSample++;
+    }
+    for (int i = 1; i < sampleCount; ++i)
+    {
+        int3 index = int3(myIndex.x, myIndex.y - i, 0);
+        
+        if (index.y < 0)
+            continue;
+        
+        bottom += HeightmapTexture.Load(index);
+        currentBottomSample++;
+    }
+    for (int k = 1; k < sampleCount; ++k)
+    {
+        int3 index = int3(myIndex.x + k, myIndex.y, 0);
+        
+        if (index.x >= (int)limits.x)
+            break;
+        
+        right += HeightmapTexture.Load(index);
+        currentRightSample++;
+    }
+    for (int l = 1; l < sampleCount; ++l)
+    {
+        int3 index = int3(myIndex.x - l, myIndex.y, 0);
+        
+        if (index.x < 0)
+            continue;
+        
+        left += HeightmapTexture.Load(index);
+        currentLeftSample++;
+    }
     
+    top /= currentTopSample;
+    bottom /= currentBottomSample;
+    right /= currentRightSample;
+    left /= currentLeftSample;
+        
     float differences[5] =
     {
         current - current,
@@ -735,12 +779,12 @@ void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
         current - left
     };
     
-    uint index = 0;
-    for (uint i = 1; i < 5; i++)
+    uint optimal = 0;
+    for (uint p = 1; p < 5; p++)
     {
-        if (differences[i] > differences[index])
+        if (differences[p] > differences[optimal])
         {
-            index = i;
+            optimal = i;
         }
     }
 
@@ -764,20 +808,137 @@ void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
         0.5 - abs(differences[4]) * 1.0
     };
 
-    OutputCurrentmap[id.xy] = currents[index];
-    OutputFoamMask[id.xy] = foams[index];
+    OutputCurrentmap[id.xy] = currents[optimal];
+    OutputFoamMask[id.xy] = foams[optimal];
 }
 
 [numthreads(32, 32, 1)]
-void SimulateWater(uint3 id : SV_DispatchThreadID)
+void SimulateWaterA(uint3 id : SV_DispatchThreadID)
 {
     uint2 limits;
-    OutputDensitymap.GetDimensions(limits.x, limits.y);
+    OutputPrepassDensityTexture.GetDimensions(limits.x, limits.y);
     
     if (id.x >= limits.x || id.y >= limits.y)
     {
         return;
     }
     
+    float quantity = DensitymapTexture.Load(int3(id.x, id.y, 0));
+    float height = HeightmapTexture.Load(int3(id.x, id.y, 0)) * 2;
+    float mask = step(EPSILON, HeightmapMaskTexture.Load(int3(id.x, id.y, 0)));
     
+    if (mask == 0)
+    {
+        return;
+    }
+    
+    float maskTop     = (int)id.y + 1     >= (int)limits.y    ? +mask : HeightmapMaskTexture.Load(int3(id.x, id.y + 1, 0));
+    float maskBottom  = (int)id.y - 1     < 0                 ? +mask : HeightmapMaskTexture.Load(int3(id.x, id.y - 1, 0));
+    float maskRight   = (int)id.x + 1     >= (int)limits.x    ? +mask : HeightmapMaskTexture.Load(int3(id.x + 1, id.y, 0));
+    float maskLeft    = (int)id.x - 1     < 0                 ? +mask : HeightmapMaskTexture.Load(int3(id.x - 1, id.y, 0));    
+    
+    float top     = (int)id.y + 1     >= (int)limits.y    ? +quantity : DensitymapTexture.Load(int3(id.x, id.y + 1, 0));
+    float bottom  = (int)id.y - 1     < 0                 ? +quantity : DensitymapTexture.Load(int3(id.x, id.y - 1, 0));
+    float right   = (int)id.x + 1     >= (int)limits.x    ? +quantity : DensitymapTexture.Load(int3(id.x + 1, id.y, 0));
+    float left    = (int)id.x - 1     < 0                 ? +quantity : DensitymapTexture.Load(int3(id.x - 1, id.y, 0));
+    
+    float heightTop     = (int)id.y + 1     >= (int)limits.y    ? +height : HeightmapTexture.Load(int3(id.x, id.y + 1, 0)) * 2;
+    float heightBottom  = (int)id.y - 1     < 0                 ? +height : HeightmapTexture.Load(int3(id.x, id.y - 1, 0)) * 2;
+    float heightRight   = (int)id.x + 1     >= (int)limits.x    ? +height : HeightmapTexture.Load(int3(id.x + 1, id.y, 0)) * 2;
+    float heightLeft    = (int)id.x - 1     < 0                 ? +height : HeightmapTexture.Load(int3(id.x - 1, id.y, 0)) * 2;
+    
+    float deltaQuantity[4] =
+    {
+        (quantity - top)    * maskTop,
+        (quantity - bottom) * maskBottom,
+        (quantity - right)  * maskRight,
+        (quantity - left)   * maskLeft
+
+    };
+    
+    float deltaHeights[4] =
+    {
+        (height - heightTop)    * maskTop,
+        (height - heightBottom) * maskBottom,
+        (height - heightRight)  * maskRight,
+        (height - heightLeft)   * maskLeft
+
+    };
+    
+    float4 currents[4] =
+    {
+        //float4(0, 0, 0, 1),
+             
+        float4(0.5, 1, 1, 1),
+        float4(0.5, 0, 1, 1),
+        float4(1, 0.5, 1, 1),
+        float4(0, 0.5, 1, 1)
+    };
+    
+
+    uint partners = 1;
+    for (uint q = 0; q < 4; q++)
+    {
+        deltaQuantity[q] = max(deltaQuantity[q], 0);
+        deltaHeights[q] = max(deltaHeights[q], 0);
+        
+        float deltaSurface = deltaHeights[q] + deltaQuantity[q];
+        if (deltaSurface > 0)
+        {
+            partners++;
+        }
+       
+    }
+    
+    float maxChange = quantity / partners;
+    
+    float prepassResult[4] = { 0, 0, 0, 0 };
+    
+    const float spreadSpeed = 64;
+    const float deltaTime = 0.016;
+    
+    for (uint p = 0; p < 4; p++)
+    {
+        float deltaSurface = deltaHeights[p] + deltaQuantity[p];
+        float surface = height + quantity;
+
+        float norm = (deltaSurface / max(surface, EPSILON));
+        float change = maxChange * norm;
+            
+        change *= deltaTime * spreadSpeed;
+
+        prepassResult[p] = change;
+        
+        OutputDensitymapTexture[id.xy] -= change;
+        OutputCurrentmap[id.xy] = currents[p];
+    }
+
+    OutputPrepassDensityTexture[id.xy] = float4(prepassResult[0], prepassResult[1], prepassResult[2], prepassResult[3]);
+}
+
+[numthreads(32,32,1)]
+void SimulateWaterB(uint3 id : SV_DispatchThreadId)
+{
+    uint2 limits;
+    OutputDensitymapTexture.GetDimensions(limits.x, limits.y);
+    
+    if (id.x >= limits.x || id.y >= limits.y)
+    {
+        return;
+    }
+    
+    float4 top;
+    float4 bottom;
+    float4 right;
+    float4 left;
+    
+    top     = (int) id.y + 1 >= (int) limits.y  ? float4(0, 0, 0, 0) : OutputPrepassDensityTexture[int2(id.x,     id.y + 1)];
+    bottom  = (int) id.y - 1 < 0                ? float4(0, 0, 0, 0) : OutputPrepassDensityTexture[int2(id.x,     id.y - 1)];
+    right   = (int) id.x + 1 >= (int) limits.x  ? float4(0, 0, 0, 0) : OutputPrepassDensityTexture[int2(id.x + 1, id.y)];
+    left    = (int) id.x - 1 < 0                ? float4(0, 0, 0, 0) : OutputPrepassDensityTexture[int2(id.x - 1, id.y)];
+    
+    float change = top.g + bottom.r + right.a + left.b;
+    
+    //OutputFoamMask[id.xy] += change * 64;
+    OutputDensitymapTexture[id.xy] += change;
 }

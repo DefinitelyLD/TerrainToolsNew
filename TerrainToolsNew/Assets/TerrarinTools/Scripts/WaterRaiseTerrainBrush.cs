@@ -16,7 +16,7 @@ namespace TerrainTools {
             var heightmapSize = terrain.terrainData.heightmapTexture.GetSize();
 
             var waterBrushHeightmapResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
-            var addtiveWaterTexture = context.GetRenderTexture(ContextConstants.AdditiveWaterDensitymapTexture);
+            var addtiveWaterTexture = context.GetRenderTexture(ContextConstants.WaterDensitymapTexture);
 
             var slicingOps = new SlicingOperations();
             var slicedBrushPosition = slicingOps.SliceBrushPosition(brushData.heightmapBrushPosition, heightmapSize);
@@ -63,7 +63,7 @@ namespace TerrainTools {
 
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.WaterRaiseBrush, waterBrushDispatchSize.x, waterBrushDispatchSize.y, waterBrushDispatchSize.z);
 
-            var waterAdditiveDensity = context.GetRenderTexture(ContextConstants.AdditiveWaterDensitymapTexture);
+            var waterAdditiveDensity = context.GetRenderTexture(ContextConstants.WaterDensitymapTexture);
             var waterBrushMaskResultTexture = context.GetRenderTexture(ContextConstants.WaterBrushResultMaskTexture);
 
             var brushData = context.GetBrushData();

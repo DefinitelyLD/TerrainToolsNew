@@ -11,10 +11,6 @@ namespace TerrainTools {
             var finalHeightmap = context.GetRenderTexture(ContextConstants.FinalTerrainHeightmap);
             var bufferHeightmap = context.GetRenderTexture(ContextConstants.BufferHeightmapTexture);
 
-            var virtualWaterTexture = context.GetRenderTexture(ContextConstants.WaterDensitymapTexture);
-            var additiveWaterDensitymap = context.GetRenderTexture(ContextConstants.AdditiveWaterDensitymapTexture);
-            var bufferWaterMask = context.GetRenderTexture(ContextConstants.BufferWaterMaskTexture);
-
             var virtualSplatmap0 = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
             var virtualSplatmap1 = context.GetRenderTexture (ContextConstants.VirtualSplatmap_0_Texture);
 
@@ -33,12 +29,7 @@ namespace TerrainTools {
             commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, heightmapDispatchSize.x, heightmapDispatchSize.y, heightmapDispatchSize.z);
             commandBuffer.CopyTexture(bufferHeightmap, outputHeightmap);
 
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "HeightmapTexture", virtualWaterTexture);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "OutputHeightmapTexture", additiveWaterDensitymap);
-            commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.Tween, "TweenStateHeightmap", bufferWaterMask);
-
-            commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.Tween, heightmapDispatchSize.x, heightmapDispatchSize.y, heightmapDispatchSize.z);
-            commandBuffer.CopyTexture(additiveWaterDensitymap, bufferWaterMask);
+            return;
 
             if (outputSplat0 != null) {
 

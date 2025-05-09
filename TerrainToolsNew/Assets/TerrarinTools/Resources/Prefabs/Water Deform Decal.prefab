@@ -47,8 +47,8 @@ MonoBehaviour:
   scaleMode: 1
   regionSize: {x: 1, y: 1}
   amplitude: 0
-  surfaceFoamDimmer: 1
-  deepFoamDimmer: 1
-  resolution: {x: 256, y: 256}
+  surfaceFoamDimmer: 0
+  deepFoamDimmer: 0
+  resolution: {x: 512, y: 512}
   updateMode: 1
   material: {fileID: 2100000, guid: faff3bb4c25af774099086ba587d05a8, type: 2}

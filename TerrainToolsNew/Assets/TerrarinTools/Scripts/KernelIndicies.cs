@@ -25,6 +25,7 @@
 
         TweenSplats,
         GenerateCurrentmap,
-        SimulateWater
+        SimulateWaterA,
+        SimulateWaterB
     }
 }
