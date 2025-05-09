@@ -105,7 +105,7 @@ MonoBehaviour:
   decalRegionAnchor: {fileID: 0}
   supportLargeCurrent: 0
   largeCurrentRes: 512
-  largeCurrentSpeedValue: 0
+  largeCurrentSpeedValue: 5
   largeCurrentMap: {fileID: 0}
   largeCurrentRegionExtent: {x: 100, y: 100}
   largeCurrentRegionOffset: {x: 0, y: 0}
@@ -118,11 +118,11 @@ MonoBehaviour:
   ripplesCurrentRegionOffset: {x: 0, y: 0}
   ripplesCurrentMapInfluence: 1
   deformation: 1
-  deformationRes: 512
+  deformationRes: 256
   foam: 1
-  foamResolution: 512
+  foamResolution: 256
   foamPersistenceMultiplier: 1
-  foamCurrentInfluence: 1
+  foamCurrentInfluence: 0.75
   foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.2
   foamSmoothness: 0.3

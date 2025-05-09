@@ -34,6 +34,8 @@
         public const string WaterBrushResultMaskTexture = "WaterBrushMaskResultTexture";
 
         public const string OutputWaterCurrentmapTexture = "OutputWaterCurrentmapTexture";
+        public const string BufferWaterCurrentmapTexture = "BufferWaterCurrentmapTexture";
+
         public const string OutputWaterFoamMaskTexture = "OutputWaterFoamMaskTexture";
         public const string WaterFoamMaskTexture = "WaterFoamMaskTexture";
 

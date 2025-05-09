@@ -656,6 +656,18 @@ namespace TerrainTools {
             }
 
             //--
+            if (context.IsRenderTextureExists(ContextConstants.BufferWaterCurrentmapTexture) == false) {
+                context.CreateRenderTexture(ContextConstants.BufferWaterCurrentmapTexture, heightmapSize, GraphicsFormat.R8G8B8A8_UNorm, true);
+            }
+
+            var bufferWaterCurrentmap = context.GetRenderTexture(ContextConstants.BufferWaterCurrentmapTexture);
+
+            if (bufferWaterCurrentmap.CheckSize(heightmapSize) == false) {
+                context.DestroyRenderTexture(ContextConstants.BufferWaterCurrentmapTexture);
+                bufferWaterCurrentmap = context.CreateRenderTexture(ContextConstants.BufferWaterCurrentmapTexture, heightmapSize, GraphicsFormat.R8G8B8A8_UNorm, true);
+            }
+
+            //-- 
 
             if (waterInstances.WaterDeformDecal.material != waterDeformMaterial) {
                 waterInstances.WaterDeformDecal.material = waterDeformMaterial;
@@ -665,6 +677,7 @@ namespace TerrainTools {
             }
             waterDeformMaterial.SetTexture("_Heightmap", terrain.terrainData.heightmapTexture);
             waterDeformMaterial.SetTexture("_Densitymap", finalWaterDensitymap);
+            waterDeformMaterial.SetFloat("_Edge", 0.01f / terrainSize.y);
             //waterDeformMaterial.SetTexture("_Mask", additiveWaterDesnsity);
             //float waterHeightOffset = 0.4f / terrainSize.y;
             //waterDeformMaterial.SetFloat("_Offset", waterHeightOffset);
@@ -684,7 +697,7 @@ namespace TerrainTools {
             waterInstances.WaterSurface.supportLargeCurrent = true;
             waterInstances.WaterSurface.largeCurrentRegionExtent = new Vector2(terrainSize.x, terrainSize.z);
             //waterInstances.WaterSurface.largeCurrentRes = UnityEngine.Rendering.HighDefinition.WaterSurface.WaterDecalRegionResolution.Resolution512;
-            waterInstances.WaterSurface.largeCurrentSpeedValue = 0f;
+            //waterInstances.WaterSurface.largeCurrentSpeedValue = 10f;
             waterInstances.WaterSurface.largeWindSpeed = 0.0f;
 
             waterInstances.WaterSurface.simulationFoamMask = waterFoamMask;
@@ -735,6 +748,7 @@ namespace TerrainTools {
                 debug.SetTexture("Water Foam Mask", waterFoamMask);
                 //debug.SetTexture("Final Water Mask Result Texture", additiveWaterDesnsity);
                 debug.SetTexture("Water Currentmap Output", waterCurrentmap);
+                debug.SetTexture("Buffer Water Currentmap", bufferWaterCurrentmap);
 
                 debug.SetTexture("Pattern Texture", patternTexture);
                 debug.SetTexture("Pattern BrushHeightmap Result Texture", patternBrushHeightmapResultTexture);
