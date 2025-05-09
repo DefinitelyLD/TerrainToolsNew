@@ -27,6 +27,8 @@ namespace TerrainTools {
 
         public int splatIndex;
 
+        public float waterSimFactor;
+
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -45,6 +47,7 @@ namespace TerrainTools {
         private float m_brushAngle;
 
         private int m_splatIndex;
+        private float m_waterSimFactor;
 
         private float m_tweenStrength;
 
@@ -80,6 +83,7 @@ namespace TerrainTools {
             m_deltaTime = data.deltaTime;
 
             m_splatIndex = data.splatIndex;
+            m_waterSimFactor = data.waterSimFactor;
         }
 
 

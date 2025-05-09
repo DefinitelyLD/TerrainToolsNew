@@ -13,6 +13,8 @@ namespace TerrainTools {
         public Vector2Int alphamapBrushSize;
         public Vector2Int alphamapActualBrushSize;
 
+        public float waterSimFactor;
+
         public int splatIndex;
 
         public float angle;

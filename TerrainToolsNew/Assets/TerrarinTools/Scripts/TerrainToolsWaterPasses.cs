@@ -18,6 +18,7 @@ namespace TerrainTools {
             var dispatchSize = context.GetDispatchSize(waterDensitymap.GetSize());
 
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
+            commandBuffer.SetComputeFloatParam(computeShader, "WaterSimulationFactor", brushData.waterSimFactor);
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SimulateWaterA, "DensitymapTexture", waterDensitymap);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SimulateWaterA, "OutputDensitymapTexture", finalWaterDensitymap);
