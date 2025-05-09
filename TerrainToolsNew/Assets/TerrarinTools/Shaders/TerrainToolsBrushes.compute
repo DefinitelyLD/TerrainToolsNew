@@ -31,6 +31,8 @@
 #define PI 3.14159265358979323846
 #define EPSILON 1e-6
 
+float WaterSimulationFactor = 1.0;
+
 RWTexture2D<float> OutputDensitymapTexture;
 RWTexture2D<float4> OutputPrepassDensityTexture;
 
@@ -749,18 +751,10 @@ void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
         float4(0, 0.5, 1, 1)
     };
     
-    float foams[5] =
-    {
-        0,
-        
-        (differences[1] / max(current, EPSILON)) * 16,
-        (differences[2] / max(current, EPSILON)) * 16,
-        (differences[3] / max(current, EPSILON)) * 16,
-        (differences[4] / max(current, EPSILON)) * 16
-    };
+    float foam = (differences[index] / max(current, EPSILON)) * 16;
 
     OutputCurrentmap[id.xy] = currents[index];
-    OutputFoamMask[id.xy] = foams[index];
+    OutputFoamMask[id.xy] = foam;
 }
 
 
@@ -816,17 +810,6 @@ void SimulateWaterA(uint3 id : SV_DispatchThreadID)
         (height - heightLeft)   * maskLeft
 
     };
-    
-    float4 currents[4] =
-    {
-        //float4(0, 0, 0, 1),
-             
-        float4(0.5, 1, 1, 1),
-        float4(0.5, 0, 1, 1),
-        float4(1, 0.5, 1, 1),
-        float4(0, 0.5, 1, 1)
-    };
-    
 
     uint partners = 1;
     for (uint q = 0; q < 4; q++)
@@ -858,6 +841,7 @@ void SimulateWaterA(uint3 id : SV_DispatchThreadID)
         float change = maxChange * norm;
             
         change *= deltaTime * spreadSpeed;
+        change *= WaterSimulationFactor;
 
         prepassResult[p] = change;
         
