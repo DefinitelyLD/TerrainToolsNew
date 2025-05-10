@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace TerrainTools {
     public class StickToTerrainHeight : MonoBehaviour {
         public float Strength = 5f;
+        public float HeightOffset = 0.5f;
+
         public Vector2 Bounds = new Vector2(1f, 1f);
 
         private float height = 0;
@@ -20,7 +21,7 @@ namespace TerrainTools {
         private void Update() {
 
             var position = transform.position;
-            position.y = Mathf.Lerp(position.y, height, Time.deltaTime * Strength);
+            position.y = Mathf.Lerp(position.y, height + HeightOffset, Time.deltaTime * Strength);
             transform.position = position;
 
             var data = TerrainToolsAPIDataProvider.GetAPIData();
