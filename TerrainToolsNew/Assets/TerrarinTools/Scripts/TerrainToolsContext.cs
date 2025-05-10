@@ -36,6 +36,7 @@ namespace TerrainTools {
             m_terrain = terrain;
 
             m_commandBuffer = new CommandBuffer();
+            m_commandBuffer.name = "Terrain Tools Command Buffer";
             m_resources = resources;
 
             m_textures = new();
