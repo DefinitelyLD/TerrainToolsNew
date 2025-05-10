@@ -35,6 +35,7 @@
 #define PI 3.14159265358979323846
 #define EPSILON 1e-6
 
+float WaterSimulationEdge;
 float WaterSimulationFactor = 1.0;
 
 RWTexture2D<float> OutputDensitymapTexture;
@@ -666,15 +667,15 @@ void TweenSplats(uint3 id : SV_DispatchThreadID)
     OutputBrushSplatmapTexture_0[id.xy] = new0;
     OutputBrushSplatmapTexture_1[id.xy] = new1;
 }
-float SampleSafe(int x, int y, uint2 limits, float current)
-{
-    if (x < 0 || y < 0 || x >= (int)limits.x || y >= (int) limits.y)
-    {
-        return current;
-    }
+//float SampleSafe(int x, int y, uint2 limits, float current)
+//{
+//    if (x < 0 || y < 0 || x >= (int)limits.x || y >= (int) limits.y)
+//    {
+//        return current;
+//    }
 
-    return HeightmapTexture.Load(int3(x, y, 0)) + DensitymapTexture.Load(int3(x, y, 0));
-}
+//    return HeightmapTexture.Load(int3(x, y, 0)) + DensitymapTexture.Load(int3(x, y, 0));
+//}
 [numthreads(32, 32, 1)]
 void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
 {
@@ -823,18 +824,25 @@ void SimulateWaterA(uint3 id : SV_DispatchThreadID)
 
         float norm = (deltaSurface / max(surface, EPSILON));
         float change = maxChange * norm;
-            
+        
+        //float edge = step(WaterSimulationEdge, deltaSurface);
+        //change *= edge;
+        
         change *= deltaTime * spreadSpeed;
         change *= WaterSimulationFactor;
 
         prepassResult[p] = change;
         
-        OutputDensitymapTexture[id.xy] -= change;
+        float current = OutputDensitymapTexture[id.xy];
+        current -= change;
+        current = clamp(current, 0, 1);
+        OutputDensitymapTexture[id.xy] = current;
     }
 
     OutputPrepassDensityTexture[id.xy] = float4(prepassResult[0], prepassResult[1], prepassResult[2], prepassResult[3]);
 }
 
+[numthreads(32,32,1)]
 void SimulateWaterB(uint3 id : SV_DispatchThreadId)
 {
     uint2 limits;
@@ -851,6 +859,7 @@ void SimulateWaterB(uint3 id : SV_DispatchThreadId)
     float4 left    = (int) id.x - 1 < 0                ? float4(0, 0, 0, 0) : OutputPrepassDensityTexture[int2(id.x - 1, id.y)];
     
     float change = top.g + bottom.r + right.a + left.b;
+    change = clamp(change, 0, 1);
     
     OutputDensitymapTexture[id.xy] += change;
 }

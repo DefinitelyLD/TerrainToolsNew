@@ -51,7 +51,7 @@ MonoBehaviour:
   largeBand0FadeToggle: 1
   largeBand1FadeToggle: 1
   ripplesFadeToggle: 1
-  surfaceType: 1
+  surfaceType: 2
   geometryType: 2
   meshRenderers: []
   timeMultiplier: 0.8
@@ -76,7 +76,7 @@ MonoBehaviour:
   directLightTipScattering: 0.2
   directLightBodyScattering: 0.2
   maximumHeightOverride: 0
-  caustics: 1
+  caustics: 0
   causticsIntensity: 0.5
   causticsPlaneBlendDistance: 2
   causticsResolution: 256
@@ -91,7 +91,7 @@ MonoBehaviour:
   waterCurrentDebugMode: 0
   currentDebugMultiplier: 1
   waterFoamDebugMode: 0
-  underWater: 1
+  underWater: 0
   volumeBounds: {fileID: 601122515482414037}
   volumeDepth: 50
   volumeHeight: 0
@@ -118,8 +118,8 @@ MonoBehaviour:
   ripplesCurrentRegionOffset: {x: 0, y: 0}
   ripplesCurrentMapInfluence: 1
   deformation: 1
-  deformationRes: 256
-  foam: 1
+  deformationRes: 512
+  foam: 0
   foamResolution: 256
   foamPersistenceMultiplier: 1
   foamCurrentInfluence: 0.75
@@ -170,7 +170,7 @@ MonoBehaviour:
   ripples: 1
   ripplesMotionMode: 0
   ripplesOrientationValue: 0
-  ripplesWindSpeed: 5
+  ripplesWindSpeed: 4
   ripplesChaos: 1
   ripplesFadeMode: 1
   ripplesFadeStart: 50

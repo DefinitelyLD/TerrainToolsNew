@@ -694,17 +694,17 @@ namespace TerrainTools {
             waterIceLayerMaterial.SetFloat("_NormalGenSampleOffset", heightmapTexelSize);
             waterIceLayerMaterial.SetFloat("_NormalGenStrength", terrainSize.x);
 
-            waterInstances.WaterSurface.largeCurrentMap = waterCurrentmap;
-            waterInstances.WaterSurface.supportLargeCurrent = true;
-            waterInstances.WaterSurface.largeCurrentRegionExtent = new Vector2(terrainSize.x, terrainSize.z);
+            //waterInstances.WaterSurface.largeCurrentMap = waterCurrentmap;
+            //waterInstances.WaterSurface.supportLargeCurrent = true;
+            //waterInstances.WaterSurface.largeCurrentRegionExtent = new Vector2(terrainSize.x, terrainSize.z);
             //waterInstances.WaterSurface.largeCurrentRes = UnityEngine.Rendering.HighDefinition.WaterSurface.WaterDecalRegionResolution.Resolution512;
             //waterInstances.WaterSurface.largeCurrentSpeedValue = 10f;
-            waterInstances.WaterSurface.largeWindSpeed = 0.0f;
+            //waterInstances.WaterSurface.largeWindSpeed = 0.0f;
 
-            waterInstances.WaterSurface.simulationFoamMask = waterFoamMask;
-            waterInstances.WaterSurface.simulationFoamMaskExtent = new Vector2(terrainSize.x, terrainSize.z);
+            //waterInstances.WaterSurface.simulationFoamMask = waterFoamMask;
+            //waterInstances.WaterSurface.simulationFoamMaskExtent = new Vector2(terrainSize.x, terrainSize.z);
             //waterInstances.WaterSurface.foamResolution = UnityEngine.Rendering.HighDefinition.WaterSurface.WaterDecalRegionResolution.Resolution512;
-            waterInstances.WaterSurface.supportSimulationFoamMask = true;
+            //waterInstances.WaterSurface.supportSimulationFoamMask = true;
 
 /*            waterInstances.WaterSurface.simulationMask = true;
             waterInstances.WaterSurface.waterMask = maskTexture;

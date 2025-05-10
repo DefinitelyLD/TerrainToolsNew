@@ -6,6 +6,7 @@ namespace TerrainTools {
             var commandBuffer = context.GetCommandBuffer();
             var computeShader = context.GetCompute();
             var brushData = context.GetBrushData();
+            var terrain = context.GetTerrain();
 
             var waterDensitymap = context.GetRenderTexture(ContextConstants.WaterDensitymapTexture);
             var finalWaterDensitymap = context.GetRenderTexture(ContextConstants.FinalDensitymapTexture);
@@ -19,6 +20,7 @@ namespace TerrainTools {
 
             commandBuffer.SetComputeFloatParam(computeShader, "DeltaTime", brushData.deltaTime);
             commandBuffer.SetComputeFloatParam(computeShader, "WaterSimulationFactor", brushData.waterSimFactor);
+            commandBuffer.SetComputeFloatParam(computeShader, "WaterSimulationEdge", 0.01f / terrain.terrainData.size.y);
 
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SimulateWaterA, "DensitymapTexture", waterDensitymap);
             commandBuffer.SetComputeTextureParam(computeShader, (int)KernelIndicies.SimulateWaterA, "OutputDensitymapTexture", finalWaterDensitymap);
@@ -35,7 +37,7 @@ namespace TerrainTools {
             commandBuffer.SetRenderTarget(outputFoamMask);
             commandBuffer.ClearRenderTarget(false, true, Color.black);
 
-            for (var i = 0; i < 24; i++) {
+            for (var i = 0; i < 32; i++) {
                 commandBuffer.CopyTexture(waterDensitymap, finalWaterDensitymap);
 
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.SimulateWaterA, dispatchSize.x, dispatchSize.y, dispatchSize.z);
