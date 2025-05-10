@@ -43,9 +43,6 @@ namespace TerrainTools {
                 var splatmapDispatchSize = context.GetDispatchSize(bufferSplatmap0.GetSize());
                 commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.TweenSplats, splatmapDispatchSize.x, splatmapDispatchSize.y, splatmapDispatchSize.z);
 
-                commandBuffer.CopyTexture(virtualSplatmap0, 0, 0, bufferSplatmap0, 0, 0);
-                commandBuffer.CopyTexture(virtualSplatmap1, 0, 0, bufferSplatmap1, 0, 0);
-
                 commandBuffer.GenerateMips(bufferSplatmap0);
                 commandBuffer.GenerateMips(bufferSplatmap1);
 

@@ -3,7 +3,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
@@ -81,7 +80,6 @@ namespace TerrainTools {
         private bool m_disposed;
         private readonly Stopwatch m_stopwatch;
 
-        private readonly FenceManager m_fenceManager;
         private bool m_terrainTapped;
 
         private AsyncGPUReadbackRequest m_apiReadBackRequest;
@@ -126,8 +124,6 @@ namespace TerrainTools {
             var eventSystem = EventSystem.current;
             Debug.Assert(eventSystem != null, "No event system found in the scene.");
 
-            var hasFencePassed = m_fenceManager.IsFencePassed();
-
             var terrain = m_context.GetTerrain();
             var heightmapResolution = terrain.terrainData.heightmapResolution;
             var alphamapResolution = terrain.terrainData.alphamapResolution;
@@ -163,7 +159,7 @@ namespace TerrainTools {
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
             newBrushData.brushStrength = m_brushStrength;
             newBrushData.deltaTime = m_deltaTime;
-            newBrushData.hasResourceFencePassed = hasFencePassed;
+            newBrushData.hasResourceFencePassed = true;
             newBrushData.tweenData = new TweenData() {
                 deltaTime = m_deltaTime,
                 strength = m_tweenStrength,
@@ -324,9 +320,6 @@ namespace TerrainTools {
             m_stopwatch.Reset();
             m_stopwatch.Start();
 
-            var fence = commandBuffer.CreateGraphicsFence(GraphicsFenceType.CPUSynchronisation, SynchronisationStageFlags.AllGPUOperations);
-            m_fenceManager.RegisterFence(fence);
-
             Graphics.ExecuteCommandBuffer(commandBuffer);
             //HDRPTerrainToolsInjectionPass.CommandBuffer = commandBuffer;
             //HDRPTerrainToolsInjectionPass.SubmitPass = true;
@@ -449,8 +442,6 @@ namespace TerrainTools {
 
             var terrainSettingsOps = new TerrainSettingsOperations();
             terrainSettingsOps.SetTerrainSettings(terrain, m_resources);
-
-            m_fenceManager = new();
 
             var commandBuffer = m_context.GetCommandBuffer();
             commandBuffer.SetRenderTarget(terrain.terrainData.heightmapTexture);

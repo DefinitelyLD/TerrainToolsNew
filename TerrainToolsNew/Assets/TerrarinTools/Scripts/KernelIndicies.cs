@@ -20,7 +20,6 @@
         MaskHeightmap,
         Compose,
         Tween,
-        ComputeNormals,
         TessellateGridMesh,
 
         TweenSplats,
