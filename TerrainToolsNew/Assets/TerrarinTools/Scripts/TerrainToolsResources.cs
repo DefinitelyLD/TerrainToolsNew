@@ -37,7 +37,7 @@ namespace TerrainTools {
 #if UNITY_EDITOR
         public bool DebugMode = false;
 #else
-        public const bool DebugMode = false;
+        public bool DebugMode = false;
 #endif
     }
 }

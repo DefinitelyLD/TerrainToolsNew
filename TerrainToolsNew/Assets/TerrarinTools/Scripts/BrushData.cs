@@ -1,5 +1,4 @@
-﻿using PlasticGui.WorkspaceWindow.Locks;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TerrainTools {
     public struct BrushData {
