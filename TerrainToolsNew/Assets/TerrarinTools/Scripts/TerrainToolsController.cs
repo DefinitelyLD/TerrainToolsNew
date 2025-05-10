@@ -27,6 +27,10 @@ namespace TerrainTools {
         private int SplatIndex = 0;
         [SerializeField]
         private float WaterSimulationFactor = 1.0f;
+        [SerializeField]
+        private float ExpendSpeed = 10f;
+        [SerializeField]
+        private float RotateSpeed = 200f;
 
         [Header("References:")]
         [Tooltip("The terrain on which to work.")]
@@ -64,7 +68,10 @@ namespace TerrainTools {
                     deltaTime = Time.deltaTime,
                     tweenStrength = TweenStrength,
                     splatIndex = SplatIndex,
-                    waterSimFactor = WaterSimulationFactor
+                    waterSimFactor = WaterSimulationFactor,
+
+                    rotateSpeed = RotateSpeed,
+                    expendSpeed = ExpendSpeed
                 });
 
                 m_manager.Tick();

@@ -4,8 +4,6 @@ using UnityEngine;
 namespace TerrainTools {
     [TerrainBrush]
     public sealed class SpiralTerrainBrush : TerrainBrush {
-        private const float ROTATE_SPEED = 200.0f;
-        private const float EXPEND_SPEED = 1f;
         private const float DESIRED_ARC = 0.1f;
 
         private Vector2Int m_brushSize = Vector2Int.zero;
@@ -35,10 +33,10 @@ namespace TerrainTools {
             }
 
             if (m_angle >= 0f) {
-                m_angle += brushData.deltaTime * ROTATE_SPEED;
+                m_angle += brushData.deltaTime * brushData.rotateSpeed;
             }
             if (m_radius >= 0f) {
-                m_radius += brushData.deltaTime * EXPEND_SPEED;
+                m_radius += brushData.deltaTime * brushData.expendSpeed;
             }
         }
 

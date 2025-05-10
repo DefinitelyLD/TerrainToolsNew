@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using PlasticGui.WorkspaceWindow.Locks;
+using UnityEngine;
 
 namespace TerrainTools {
     public struct BrushData {
@@ -33,5 +34,8 @@ namespace TerrainTools {
 
         public float terrainMaskBaseHeight;
         public int terrainMaskBorder;
+
+        public float expendSpeed;
+        public float rotateSpeed;
     }
 }

@@ -29,6 +29,8 @@ namespace TerrainTools {
 
         public float waterSimFactor;
 
+        public float expendSpeed;
+        public float rotateSpeed;
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -46,6 +48,8 @@ namespace TerrainTools {
         private int m_brushHeight;
         private float m_brushStrength;
         private float m_brushAngle;
+        private float m_expendSpeed;
+        private float m_rotateSpeed;
 
         private int m_splatIndex;
         private float m_waterSimFactor;
@@ -85,6 +89,9 @@ namespace TerrainTools {
 
             m_splatIndex = data.splatIndex;
             m_waterSimFactor = data.waterSimFactor;
+
+            m_expendSpeed = data.expendSpeed;
+            m_rotateSpeed = data.rotateSpeed;
         }
 
 
@@ -128,6 +135,8 @@ namespace TerrainTools {
             newBrushData.alphamapBrushSize = splatmapTexelBrushSize;
             newBrushData.splatIndex = m_splatIndex;
             newBrushData.waterSimFactor = m_waterSimFactor;
+            newBrushData.expendSpeed = m_expendSpeed;
+            newBrushData.rotateSpeed = m_rotateSpeed;
 
             newBrushData.currentBrushIndex = m_currentBrushShapeIndex;
             newBrushData.brushStrength = m_brushStrength;

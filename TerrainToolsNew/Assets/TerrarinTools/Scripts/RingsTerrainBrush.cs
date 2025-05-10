@@ -1,7 +1,5 @@
-﻿using PlasticPipe.PlasticProtocol.Messages;
-using System;
+﻿using System;
 using UnityEngine;
-using UnityEngine.TerrainUtils;
 
 namespace TerrainTools {
     [TerrainBrush]
