@@ -224,7 +224,7 @@ namespace TerrainTools {
 
             var waterPasses = new TerrainToolsWaterPasses();
             waterPasses.SimulatePass(m_context, unityTerrainHeightmap);
-            waterPasses.GenerateWaterMapsPass(m_context, unityTerrainHeightmap);
+            //waterPasses.GenerateWaterMapsPass(m_context, unityTerrainHeightmap); not viable the smooth pass takes too long to execute.
 
             TerrainToolsUtils.Log($"Water gpu commands recording took: {m_stopwatch.ElapsedMilliseconds} ms" +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +

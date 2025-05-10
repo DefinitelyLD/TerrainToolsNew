@@ -1,3 +1,8 @@
+#if DEBUG
+    #pragma enable_d3d11_debug_symbols
+#endif
+
+
 #pragma kernel RaiseBrush
 #pragma kernel LowerBrush
 #pragma kernel SmoothBrush
@@ -506,51 +511,41 @@ void MaskHeightmap(uint3 id : SV_DispatchThreadID)
     uint2 limits;
     HeightmapTexture.GetDimensions(limits.x, limits.y);
     if (id.x >= limits.x || id.y >= limits.y)
-    {
         return;
-    }
-    
-    float mask = HeightmapMaskTexture.Load(int3(id.x, id.y, 0));
-    float height = HeightmapTexture.Load(int3(id.x, id.y, 0));
-    
-    mask = mask > 0.0 ? 1.0 : 0.0;
-    
+
+    int2 center = int2(id.x, id.y);
+    const int border = TerrainMaskBorder;
     bool forceMask = false;
 
-    for (int j = -TerrainMaskBorder; j <= TerrainMaskBorder; ++j)
+    // Cardinal direction offsets
+    int2 offsets[4] =
     {
-        int y = id.y + j;
-        if (y < 0 || y >= (int) limits.y)
-            continue;
+        int2(0, border), // top
+        int2(0, -border), // bottom
+        int2(border, 0), // right
+        int2(-border, 0) // left
+    };
 
-        bool breaked = false;
-        for (int i = -TerrainMaskBorder; i <= TerrainMaskBorder; ++i)
+    // Clamp offsets once before sampling
+    float mask = 1;
+    [unroll]
+    for (int i = 0; i < 4; ++i)
+    {
+        int2 pos = clamp(center + offsets[i], int2(0, 0), int2(limits) - 1);
+        float maskVal = HeightmapMaskTexture.Load(int3(pos, 0));
+        if (maskVal == 0.0f)
         {
-            int x = id.x + i;
-            if (x < 0 || x >= (int) limits.x)
-                continue;
-
-            int2 pos = int2(x, y);
-            float borderMask = HeightmapMaskTexture.Load(int3(pos.xy, 0));
-
-            if (borderMask == 0)
-            {
-                forceMask = true;
-                breaked = true;
-                break;
-            }
-        }
-
-        if (breaked)
+            mask = 0;
             break;
+        }
     }
-     
-    mask = forceMask ? 0.0 : mask;
-    
+
+    float height = HeightmapTexture.Load(int3(center, 0));
+
     float newHeight = (height * mask) + TerrainMaskBaseHeight;
-    
-    OutputHeightmapTexture[id.xy] = newHeight;
+    OutputHeightmapTexture[center] = newHeight;
 }
+
 
 [numthreads(32, 32, 1)]
 void Compose(uint3 id : SV_DispatchThreadID)
@@ -703,54 +698,75 @@ void TweenSplats(uint3 id : SV_DispatchThreadID)
     OutputBrushSplatmapTexture_0[id.xy] = new0;
     OutputBrushSplatmapTexture_1[id.xy] = new1;
 }
+float SampleSafe(int x, int y, uint2 limits, float current)
+{
+    if (x < 0 || y < 0 || x >= (int)limits.x || y >= (int) limits.y)
+    {
+        return current;
+    }
 
+    return HeightmapTexture.Load(int3(x, y, 0)) + DensitymapTexture.Load(int3(x, y, 0));
+}
 [numthreads(32, 32, 1)]
 void GenerateCurrentmap(uint3 id : SV_DispatchThreadID)
 {
     uint2 limits;
     HeightmapTexture.GetDimensions(limits.x, limits.y);
-    
+
     if (id.x >= limits.x || id.y >= limits.y)
     {
         return;
     }
-    
-    float current = HeightmapTexture.Load(int3(id.x, id.y, 0)) + DensitymapTexture.Load(int3(id.x, id.y, 0));
-    
-    float top       = (int) id.y + 1    >= (int)limits.x    ? current : HeightmapTexture.Load(int3(id.x, id.y + 1, 0)) + DensitymapTexture.Load(int3(id.x, id.y + 1, 0));
-    float bottom    = (int) id.y - 1    < 0                 ? current : HeightmapTexture.Load(int3(id.x, id.y - 1, 0)) + DensitymapTexture.Load(int3(id.x, id.y - 1, 0));
-    float right     = (int) id.x + 1    >= (int)limits.x    ? current : HeightmapTexture.Load(int3(id.x + 1, id.y, 0)) + DensitymapTexture.Load(int3(id.x + 1, id.y, 0));
-    float left      = (int) id.x - 1    < 0                 ? current : HeightmapTexture.Load(int3(id.x - 1, id.y, 0)) + DensitymapTexture.Load(int3(id.x - 1, id.y, 0));
-    
-    float differences[5] =
+
+    int x = (int) id.x;
+    int y = (int) id.y;
+
+    float current = HeightmapTexture.Load(int3(x, y, 0)) + DensitymapTexture.Load(int3(x, y, 0));
+
+    float neighbors[8] =
     {
-        current - current,
-        current - top,
-        current - bottom,
-        current - right,
-        current - left
+        SampleSafe(x, y + 1, limits, current), // Top
+        SampleSafe(x, y - 1, limits, current), // Bottom
+        SampleSafe(x + 1, y, limits, current), // Right
+        SampleSafe(x - 1, y, limits, current), // Left
+        SampleSafe(x + 1, y + 1, limits, current), // Top-Right
+        SampleSafe(x - 1, y + 1, limits, current), // Top-Left
+        SampleSafe(x + 1, y - 1, limits, current), // Bottom-Right
+        SampleSafe(x - 1, y - 1, limits, current) // Bottom-Left
     };
-    
-    uint index = 0;
-    for (uint i = 1; i < 5; i++)
+
+    float differences[9] =
     {
-        differences[i] = max(differences[i], 0);
-        if (differences[i] > differences[index])
+        0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    float4 currents[9] =
+    {
+        float4(0, 0, 1, 1), // center
+        float4(0.5, 1, 1, 1), // top
+        float4(0.5, 0, 1, 1), // bottom
+        float4(1, 0.5, 1, 1), // right
+        float4(0, 0.5, 1, 1), // left
+        float4(0.75, 0.75, 1, 1), // top-right
+        float4(0.25, 0.75, 1, 1), // top-left
+        float4(0.75, 0.25, 1, 1), // bottom-right
+        float4(0.25, 0.25, 1, 1) // bottom-left
+    };
+
+    for (uint i = 0; i < 8; i++)
+    {
+        differences[i + 1] = max(current - neighbors[i], 0);
+    }
+
+    uint index = 0;
+    for (uint q = 1; q < 9; q++)
+    {
+        if (differences[q] > differences[index])
         {
-            index = i;
+            index = q;
         }
     }
 
-    float4 currents[5] =
-    {
-        float4(0, 0, 1, 1),
-             
-        float4(0.5, 1, 1, 1),
-        float4(0.5, 0, 1, 1),
-        float4(1, 0.5, 1, 1),
-        float4(0, 0.5, 1, 1)
-    };
-    
     float foam = (differences[index] / max(current, EPSILON)) * 16;
 
     OutputCurrentmap[id.xy] = currents[index];
@@ -883,69 +899,51 @@ void SmoothCurrentmap(uint3 id : SV_DispatchThreadID)
 {
     uint2 limits;
     CurrentmapTexture.GetDimensions(limits.x, limits.y);
-    
-    if (id.x >= limits.x || id.y >= limits.y)
-    {
-        return;
-    }
 
-    const int strength = 16;
-    const int foamStrength = 16;
-    
+    // Early exit if outside of texture bounds
+    if (id.x >= limits.x || id.y >= limits.y)
+        return;
+
+    const int strength = 16; // 33x33 window
+    const int kernelSize = (2 * strength + 1); // 33x33
+
     float4 accumulation = 0;
     float foamAcc = 0;
     uint sampleCount = 0;
     uint foamSampleCount = 0;
-    
-    for (int y = -strength; y < strength + 1; y++)
-    {
-        for (int x = -strength; x < strength + 1; x++)
-        {
-            int3 index = int3(id.x + x, id.y + y, 0);
 
-            if (index.x < 0 || index.x >= (int)limits.x || index.y < 0 || index.y >= (int)limits.y)
-            {
-                continue;
-            }
-            
-            float mask = step(EPSILON, HeightmapMaskTexture.Load(index));
+    // Min and max clamping to ensure within bounds
+    int minX = max(0, id.x - strength);
+    int maxX = min(limits.x, id.x + strength + 1);
+    int minY = max(0, id.y - strength);
+    int maxY = min(limits.y, id.y + strength + 1);
+
+    // Combine both loops into one
+    for (int y = minY; y < maxY; ++y)
+    {
+        for (int x = minX; x < maxX; ++x)
+        {
+            int3 coord = int3(x, y, 0);
+
+            // Check if heightmap mask is valid (non-zero)
+            float mask = step(EPSILON, HeightmapMaskTexture.Load(coord));
             if (mask == 0)
-            {
                 continue;
-            }
-            
-            accumulation += CurrentmapTexture.Load(index);
-            
-            sampleCount++;
+
+            // Accumulate values for averaging
+            accumulation += CurrentmapTexture.Load(coord);
+            foamAcc += FoamMaskTexture.Load(coord);
+
+            ++sampleCount;
+            ++foamSampleCount;
         }
     }
-    
-    for (int p = -foamStrength; p < foamStrength + 1; p++)
-    {
-        for (int q = -foamStrength; q < foamStrength + 1; q++)
-        {
-            int3 index = int3(id.x + q, id.y + p, 0);
 
-            if (index.x < 0 || index.x >= (int) limits.x || index.y < 0 || index.y >= (int) limits.y)
-            {
-                continue;
-            }
-            
-            float mask = step(EPSILON, HeightmapMaskTexture.Load(index));
-            if (mask == 0)
-            {
-                continue;
-            }
-            
-            foamAcc += FoamMaskTexture.Load(index);
-            
-            foamSampleCount++;
-        }
-    }
-    
-    float4 newCurrent = accumulation / (float) sampleCount;
-    float newFoam = foamAcc / (float) foamSampleCount;
-    
+    // Ensure we don't divide by zero
+    float4 newCurrent = (sampleCount > 0) ? (accumulation / sampleCount) : float4(0, 0, 0, 0);
+    float newFoam = (foamSampleCount > 0) ? (foamAcc / foamSampleCount) : 0.0;
+
+    // Output the final smoothed values
     OutputCurrentmap[id.xy] = newCurrent;
     OutputFoamMask[id.xy] = newFoam;
 }

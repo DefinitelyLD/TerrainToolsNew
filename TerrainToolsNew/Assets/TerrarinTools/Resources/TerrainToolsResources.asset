@@ -27,7 +27,7 @@ MonoBehaviour:
     WaterExcluderPrefab: {fileID: 2352424971656150507, guid: 716e04d3a06057249a93bf7aee2a80fc, type: 3}
     IceLayerPrefab: {fileID: 2014644893360158946, guid: 9622df3685ae1c44195dd665d07240ef, type: 3}
   TerrainMask: {fileID: 2800000, guid: 29ae4a487e9d3414d8293b67d61a1c74, type: 3}
-  TerrainMaskBorder: 6
+  TerrainMaskBorder: 8
   TerrainMaskBaseHeight: 1
   TerrainBrushesCompute: {fileID: 7200000, guid: eb4ded7296eef1d40beab4f97431bcdf, type: 3}
   BlitMaterial: {fileID: 2100000, guid: dee3ae289df79444199c17b25c2cbb79, type: 2}
