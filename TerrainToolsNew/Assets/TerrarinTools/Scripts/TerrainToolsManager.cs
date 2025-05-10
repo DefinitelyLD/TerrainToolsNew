@@ -38,6 +38,7 @@ namespace TerrainTools {
         
         private readonly InputModule m_inputModule;
         private int m_currentModeIndex = 0;
+        private int m_lastModeIndex = 0;
 
         private int m_currentBrushShapeIndex = 0;
 
@@ -201,6 +202,11 @@ namespace TerrainTools {
             m_stopwatch.Stop();
             //-----------------------------------
 
+            if(m_lastModeIndex != m_currentModeIndex && m_terrainTapped) {
+                m_terrainTapped = false;
+            }
+
+            m_lastModeIndex = m_currentModeIndex;
             if (m_inputModule.IsMouseLeftClickUp() && m_terrainTapped) {
                 m_modes[m_currentModeIndex].OnBrushUp(m_context);
 

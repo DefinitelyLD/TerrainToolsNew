@@ -129,14 +129,19 @@ namespace TerrainTools {
                 var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(m_brushPosition, heightmapSize);
                 slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
-                commandBuffer.CopyTexture(
+                // if whole of the brush is outside the terrain then nothing can be done, i.e gonna slice whole things make no sense
+                if (((m_brushPosition.x + m_actualBrushSize.x <= 0 || m_brushPosition.x >= heightmapSize.x - 1) ||
+                   (m_brushPosition.y + m_actualBrushSize.y <= 0 || m_brushPosition.y >= heightmapSize.y - 1)) == false) {
+
+                    commandBuffer.CopyTexture(
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
                     patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
 
-                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.DoubleSpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+                    commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.DoubleSpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
-                commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                    patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                    commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                        patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                }
             }
 
             float secondArc = Mathf.Abs(m_secondRadius) * (Mathf.Deg2Rad * (m_secondAngle - m_secondLastAngle));
@@ -160,14 +165,19 @@ namespace TerrainTools {
                 var slicedBrushPositionShift = slicingOps.GetSlicedPositionShift(m_secondBrushPosition, heightmapSize);
                 slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
-                commandBuffer.CopyTexture(
+                // if whole of the brush is outside the terrain then nothing can be done, i.e gonna slice whole things make no sense
+                if (((m_secondBrushPosition.x + m_secondActualBrushSize.x <= 0 || m_secondBrushPosition.x >= heightmapSize.x - 1) ||
+                   (m_secondBrushPosition.y + m_secondActualBrushSize.y <= 0 || m_secondBrushPosition.y >= heightmapSize.y - 1)) == false) {
+
+                    commandBuffer.CopyTexture(
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
                     patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y);
 
-                commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.DoubleSpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+                    commandBuffer.DispatchCompute(computeShader, (int)KernelIndicies.DoubleSpiralBrush, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
-                commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
-                    patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                    commandBuffer.CopyTexture(patternBrushHeightmapResultTexture, 0, 0, slicedBrushPositionShift.x, slicedBrushPositionShift.y, slicedBrushSize.x, slicedBrushSize.y,
+                        patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y);
+                }
             }
 
             m_lastAngle = m_angle;

@@ -107,8 +107,8 @@ namespace TerrainTools {
                 slicedBrushPositionShift = new Vector2Int(Math.Abs(slicedBrushPositionShift.x), Math.Abs(slicedBrushPositionShift.y));
 
                 // if whole of the brush is outside the terrain then nothing can be done, i.e gonna slice whole things make no sense
-                if (((m_brushPosition.x + m_actualBrushSize.x < 0 || m_brushPosition.x > heightmapSize.x) ||
-                   (m_brushPosition.y + m_actualBrushSize.y < 0 || m_brushPosition.y > heightmapSize.y)) == false) {
+                if (((m_brushPosition.x + m_actualBrushSize.x <= 0 || m_brushPosition.x >= heightmapSize.x -1) ||
+                   (m_brushPosition.y + m_actualBrushSize.y <= 0 || m_brushPosition.y >= heightmapSize.y -1)) == false) {
 
                     commandBuffer.CopyTexture(
                     patternTexture, 0, 0, slicedBrushPosition.x, slicedBrushPosition.y, slicedBrushSize.x, slicedBrushSize.y,
