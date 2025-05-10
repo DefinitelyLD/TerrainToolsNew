@@ -5,32 +5,20 @@ namespace TerrainTools {
     public sealed class TerrainToolsController : MonoBehaviour {
 
         [Header("Controls:")]
-        [SerializeField]
-        private Vector2Int BrushSize = new Vector2Int(30, 30);
-        [SerializeField]
-        private float BrushStrength = 1f;
-        [SerializeField]
-        private float BrushAngle = 0;
-        [SerializeField]
-        private int BrushHeight = 5;
-        [SerializeField]
-        private int BrushShapeIndex = 0;
+        public Vector2Int BrushSize = new Vector2Int(30, 30);
+        public float BrushStrength = 1f;
+        public float BrushAngle = 0;
+        public int BrushHeight = 5;
+        public int BrushShapeIndex = 0;
 
-        [SerializeField]
-        private BrushMode BrushType = BrushMode.Raise;
-        [SerializeField]
-        private float TweenStrength = 4;
+        public BrushMode BrushType = BrushMode.Raise;
+        public float TweenStrength = 4;
 
-        [SerializeField]
-        private float BrushFall = 0.2f;
-        [SerializeField]
-        private int SplatIndex = 0;
-        [SerializeField]
-        private float WaterSimulationFactor = 1.0f;
-        [SerializeField]
-        private float ExpendSpeed = 10f;
-        [SerializeField]
-        private float RotateSpeed = 200f;
+        public float BrushFall = 0.2f;
+        public int SplatIndex = 0;
+        public float WaterSimulationFactor = 1.0f;
+        public float ExpendSpeed = 10f;
+        public float RotateSpeed = 200f;
 
         [Header("References:")]
         [Tooltip("The terrain on which to work.")]
@@ -48,6 +36,12 @@ namespace TerrainTools {
             Debug.Assert(ToolsResources != null, $"Resources are not assigned, {name}");
 
             m_manager = new TerrainToolsManager(Terrain, ToolsResources);
+        }
+
+        public APIData GetAPIData() {
+            Debug.Assert(m_manager != null);
+
+            return m_manager.GetAPIData();
         }
 
         private void Update() {
@@ -115,6 +109,10 @@ namespace TerrainTools {
                 terrain = terrain,
                 resources = resources
             });
+
+            var apiObject = new GameObject("[Terrain Tools API Provider]");
+            apiObject.transform.SetParent(controllerObject.transform);
+            apiObject.AddComponent<TerrainToolsAPIDataProvider>();
         }
     }
 }

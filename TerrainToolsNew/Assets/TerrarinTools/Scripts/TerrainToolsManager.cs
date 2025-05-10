@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
@@ -31,6 +32,18 @@ namespace TerrainTools {
 
         public float expendSpeed;
         public float rotateSpeed;
+    }
+
+    public class APIData {
+        public readonly ushort[] HeightmapData;
+        public readonly Vector2Int Size;
+        public readonly Vector3 TerrainSize;
+
+        public APIData(ushort[] heightmapData, Vector2Int size, Vector3 terrainSize) {
+            this.HeightmapData = heightmapData;
+            Size = size;
+            TerrainSize = terrainSize;
+        }
     }
 
     public class TerrainToolsManager : IDisposable {
@@ -70,6 +83,15 @@ namespace TerrainTools {
 
         private readonly FenceManager m_fenceManager;
         private bool m_terrainTapped;
+
+        private AsyncGPUReadbackRequest m_apiReadBackRequest;
+        private APIData m_apiData;
+
+        private bool m_apiReadbackCompleted = true;
+
+        public APIData GetAPIData() {
+            return m_apiData;
+        }
 
         public void UpdateData(TerrainToolsManagerUpdateData data) {
 
@@ -295,7 +317,9 @@ namespace TerrainTools {
         }
 
         private void SubmitCommandBuffer(CommandBuffer commandBuffer) {
-            //commandBuffer.CopyTexture(m_context.GetTerrain().terrainData.heightmapTexture, m_context.GetTexture2D(ContextConstants.APIGetHeightTexture));
+            var terrain = m_context.GetTerrain();
+            var apiTexture = m_context.GetTexture2D(ContextConstants.APIGetHeightTexture);
+            commandBuffer.CopyTexture(terrain.terrainData.heightmapTexture, apiTexture);
 
             m_stopwatch.Reset();
             m_stopwatch.Start();
@@ -312,7 +336,33 @@ namespace TerrainTools {
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
                 $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
 
-            var terrain = m_context.GetTerrain();
+            if (m_apiReadbackCompleted) {
+                TerrainToolsUtils.Log($"API Texture Queued at: {Time.time}");
+                m_apiReadbackCompleted = false;
+                m_apiReadBackRequest = AsyncGPUReadback.Request(apiTexture, 0, x => {
+                    if (x.hasError) {
+                        Debug.LogError($"Error in API Texture Readback.");
+                        return;
+                    }
+                    m_apiData ??= new APIData(new ushort[x.width * x.height], new Vector2Int(x.width, x.height), terrain.terrainData.size);
+
+                    m_stopwatch.Reset();
+                    m_stopwatch.Start();
+
+                    x.GetData<ushort>().CopyTo(m_apiData.HeightmapData);
+
+                    m_stopwatch.Stop();
+
+                    TerrainToolsUtils.Log($"API Data Readback Copy Took: {m_stopwatch.ElapsedMilliseconds} ms" +
+                        $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000} micro seconds." +
+                        $" | {(m_stopwatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000000000} ns");
+
+                    m_apiReadbackCompleted = true;
+
+                    TerrainToolsUtils.Log($"API Texture Completed at: {Time.time}");
+                });
+            }
+
 
             m_stopwatch.Reset();
             m_stopwatch.Start();
