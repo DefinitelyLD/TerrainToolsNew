@@ -49,8 +49,8 @@ namespace TerrainTools {
                 commandBuffer.GenerateMips(bufferSplatmap0);
                 commandBuffer.GenerateMips(bufferSplatmap1);
 
-                //commandBuffer.CopyTexture(bufferSplatmap0, outputSplat0);
-                //commandBuffer.CopyTexture(bufferSplatmap1, outputSplat1);
+                commandBuffer.CopyTexture(bufferSplatmap0, outputSplat0);
+                commandBuffer.CopyTexture(bufferSplatmap1, outputSplat1);
             }
         }
     }

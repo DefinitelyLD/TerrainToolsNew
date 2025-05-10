@@ -546,15 +546,12 @@ namespace TerrainTools {
                     splatmap1Texture = context.CreateRenderTexture(ContextConstants.BufferSplatmap_1_Texture, alphamapSize, alphamapFormat, true, mipsCount);
                 }
                 //--
-                commandBuffer.SetRenderTarget(splatmap0Texture);
-                commandBuffer.ClearRenderTarget(false, true, Color.black);
-
-                commandBuffer.SetRenderTarget(splatmap1Texture);
-                commandBuffer.ClearRenderTarget(false, true, Color.black);
-                //--
 
                 if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_0_Texture) == false) {
-                    context.CreateRenderTexture(ContextConstants.VirtualSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
+                    var texture = context.CreateRenderTexture(ContextConstants.VirtualSplatmap_0_Texture, alphamapSize, alphamapFormat, true);
+
+                    commandBuffer.SetRenderTarget(texture);
+                    commandBuffer.ClearRenderTarget(false, true, Color.red);
                 }
                 var virtualSplatmap0Texture = context.GetRenderTexture(ContextConstants.VirtualSplatmap_0_Texture);
                 if (virtualSplatmap0Texture.CheckSize(alphamapSize) == false) {
@@ -563,7 +560,10 @@ namespace TerrainTools {
                 }
                 //--
                 if (context.IsRenderTextureExists(ContextConstants.VirtualSplatmap_1_Texture) == false) {
-                    context.CreateRenderTexture(ContextConstants.VirtualSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
+                    var texture = context.CreateRenderTexture(ContextConstants.VirtualSplatmap_1_Texture, alphamapSize, alphamapFormat, true);
+
+                    commandBuffer.SetRenderTarget(texture);
+                    commandBuffer.ClearRenderTarget(false, true, Color.black);
                 }
                 var virtualSplatmap1Texture = context.GetRenderTexture(ContextConstants.VirtualSplatmap_1_Texture);
                 if (virtualSplatmap1Texture.CheckSize(alphamapSize) == false) {

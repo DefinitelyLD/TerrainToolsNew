@@ -393,6 +393,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9709d686d11f81043884767d12735732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strength: 10
+  HeightOffset: 0.5
+  Bounds: {x: 1, y: 1}
 --- !u!1 &1081892523
 GameObject:
   m_ObjectHideFlags: 0
@@ -484,7 +487,7 @@ Terrain:
   m_StaticShadowCaster: 0
   m_IgnoreQualitySettings: 0
   m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
+  m_MaterialTemplate: {fileID: 2100000, guid: b0f5528dfb05fb54d9105357077479eb, type: 2}
   m_BakeLightProbesForTrees: 1
   m_PreserveTreePrototypeLayers: 0
   m_DeringLightProbesForTrees: 1
@@ -631,28 +634,9 @@ MonoBehaviour:
       useCustomCoords: 0
       layerUVMode: 1
       layerUVValue: {x: 1, y: 1, z: 0, w: 0}
-    - name: Terrain Layer Lava
-      isInitialized: 1
-      layerID: 6
-      layerColor: {r: 1, g: 1, b: 1, a: 1}
-      useCustomLayer: 0
-      terrainLayer: {fileID: 0}
-      useCustomTextures: 0
-      layerAlbedo: {fileID: 0}
-      layerNormal: {fileID: 0}
-      layerShader: {fileID: 0}
-      useCustomSettings: 0
-      layerSpecular: {r: 0, g: 0, b: 0, a: 1}
-      layerRemapMin: {x: 0, y: 0, z: 0, w: 0}
-      layerRemapMax: {x: 1, y: 1, z: 1, w: 1}
-      layerSmoothness: 1
-      layerNormalScale: 1
-      useCustomCoords: 0
-      layerUVMode: 1
-      layerUVValue: {x: 1, y: 1, z: 0, w: 0}
   terrain: {fileID: 1206018916}
   meshRenderer: {fileID: 0}
-  terrainMaterial: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
+  terrainMaterial: {fileID: 2100000, guid: b0f5528dfb05fb54d9105357077479eb, type: 2}
   styledSpace1: 0
 --- !u!154 &1206018919
 TerrainCollider:
